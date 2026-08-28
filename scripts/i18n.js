@@ -15,6 +15,22 @@
       accessibilityLabel: 'Accessibility and localization', accessibilityTitle: 'Make meaning and language part of the tree.', accessibilityBody: 'LumaFlow keeps semantics, keyboard focus and locale resources as separate tree-scoped contracts. Built-in controls expose their roles and state; use <code>Semantics</code> when application-specific content needs an explicit label, hint or action.', localeCardTitle: 'Own the resource object', localeCardBody: 'Place strongly typed application strings in <code>Localizations</code>; the framework does not force a loading package or table format.', semanticsCardTitle: 'Test on real target devices', semanticsCardBody: 'The hierarchy is deterministic, but screen-reader speech and touch exploration still need representative platform review.',
       diagnosticsNoteTitle: 'Snapshots are non-owning.', diagnosticsNote: 'They contain values and child snapshots, not live <code>WidgetNode</code>, <code>VisualElement</code> or <code>MountHandle</code> instances. Capture them on Unity’s main thread.',
       inspectionLabel: 'Inspection', inspectionTitle: 'Inspect the retained tree when behavior needs an explanation.', inspectionBody: 'Open <code>Window › LumaFlow › Widget Inspector</code> in Unity. The inspector captures active mounts with widget and state types, native UI Toolkit identity, resolved layout and lifecycle findings.', backToArchitecture: 'Explore the architecture <span aria-hidden="true">→</span>'
+    },
+    ru: {
+      skip: 'Перейти к содержимому', openNavigation: 'Открыть навигацию', navOverview: 'Обзор', navFeatures: 'Возможности', navExamples: 'Примеры', navDocs: 'Документация',
+      eyebrow: 'Документация / 0.1', heroTitle: 'Нативный Unity UI — с более ясной моделью разработки.', heroBody: 'Практическое руководство по установке LumaFlow, монтированию приложения и построению реактивного интерфейса поверх Unity UI Toolkit.',
+      languageLabel: 'Язык', languageHint: 'Русский и английский доступны на этой странице.', onThisPage: 'Содержание', groupStart: 'Начало работы', groupFundamentals: 'Основы', groupBuild: 'Разработка приложения', sideInstall: 'Установка', sideMount: 'Монтирование приложения', sideComposition: 'Композиция UI', sideState: 'Реакция на состояние', sideLayout: 'Адаптивные layouts', sideLists: 'Виртуализированные списки', sideNavigation: 'Навигация и overlays', sideControls: 'Контролы и ввод', sideAnimation: 'Локальные анимации', sideAccessibility: 'Доступность и локализация', sideInspection: 'Инспекция mount', viewGitHub: 'Открыть GitHub ↗',
+      installLabel: 'Установка', installTitle: 'Добавьте пакет, затем импортируйте sample.', installBody: 'LumaFlow публикуется как <code>com.lumaflow.ui</code>. Добавьте его через Unity Package Manager из выбранного источника пакетов, затем импортируйте Getting Started sample.', installNoteTitle: 'Текущий способ распространения', installNote: 'Публичный URL пакета ещё готовится. Здесь намеренно нет выдуманной команды установки.',
+      mountLabel: 'Монтирование', mountTitle: 'Сохраняйте ownership своего UIDocument.', mountBody: 'LumaFlow монтируется в корневой <code>VisualElement</code>, которым уже владеет приложение. Свяжите lifecycle mount с MonoBehaviour и освобождайте его при отключении host.', copy: 'Копировать', copied: 'Скопировано',
+      compositionLabel: 'Композиция', compositionTitle: 'Описывайте экран, а не последовательность его обновлений.', compositionBody: 'Widgets — это неизменяемые C#-описания. Собирайте layout и контролы из типизированных блоков; LumaFlow согласует совместимые обновления с retained UI Toolkit elements.', composeCardTitle: 'Типизированный layout', composeCardBody: 'Rows, columns, constraints и scrolling следуют flexbox-модели UI Toolkit.', retainCardTitle: 'Retained по умолчанию', retainCardBody: 'Совместимые elements сохраняют identity вместо пересоздания при каждом обновлении.',
+      stateLabel: 'Состояние', stateTitle: 'Пусть обновляется ветка, которой принадлежит состояние.', stateBody: '<code>State&lt;T&gt;</code> — явное реактивное значение. Обновляется только mounted-ветка, которая его читает; распространение изменений остаётся локальным и видимым в исходном коде.', stateNoteTitle: 'Принцип проектирования', stateNote: 'Держите состояние рядом с UI, которому оно принадлежит. Поднимайте его выше только когда оно действительно нужно sibling, route или всему приложению.',
+      layoutLabel: 'Layout', layoutTitle: 'Пусть ширина будет фактом build, а не глобальной догадкой.', layoutBody: '<code>LayoutBuilder</code> получает resolved constraints своей позиции в дереве. Используйте его для выбора компактной или широкой композиции; <code>Expanded</code> и <code>Flexible</code> должны быть прямыми потомками <code>Row</code> или <code>Column</code>.', layoutTipTitle: 'Практическое правило layout', layoutTip: 'Перед сочетанием scrolling, фиксированных высот и flex children прочитайте Layout Contract. Scroll view даёт неограниченную ось, а flex child требуется ограниченное пространство для распределения.',
+      listsLabel: 'Списки', listsTitle: 'Виртуализируйте строки, а не кэшируйте второе дерево.', listsBody: '<code>ListView&lt;T&gt;</code> использует нативный virtualized ListView UI Toolkit. LumaFlow монтирует widgets только для реализованных row hosts и recycle range, а не для всей коллекции.', listsNoteTitle: 'Keys — контракт retained rows.', listsNote: 'Указывайте детерминированный уникальный <code>itemKey</code>, когда строка содержит локальное состояние, focus или subscriptions. Строка за пределами native recycle window всё равно обычным образом размонтируется.',
+      navigationLabel: 'Навигация', navigationTitle: 'Храните controllers вне Build.', navigationBody: '<code>Navigator</code> и <code>OverlayController</code> владеют retained stacks. Создайте их на границе приложения, монтируйте под matching host и используйте keyed <code>Route</code>, когда важны identity или restoration.',
+      controlsLabel: 'Контролы', controlsTitle: 'Храните значение вне контрола, который его редактирует.', controlsBody: 'Text fields, toggles, sliders, dropdowns и tabs получают принадлежащий приложению <code>State&lt;T&gt;</code> или <code>FormField&lt;T&gt;</code>. Пользовательский ввод фиксирует значение до <code>onChanged</code>; программное обновление обновляет контрол без повторного callback.', controlsNoteTitle: 'Не заменяйте поведение контрола ради стиля.', controlsNote: 'Оборачивайте контролы LumaFlow в product-level widgets и themes. Внутренний контрол сохраняет native focus, keyboard interaction и accessibility semantics.',
+      animationLabel: 'Анимация', animationTitle: 'Анимируйте локальное значение и дайте ему завершиться.', animationBody: 'Implicit animations владеют своим scheduler и при совместимом обновлении перенацеливаются от отображаемого сейчас значения. Они сразу устанавливают initial value и отменяют работу при unmount.', motionTitle: 'Учитывайте reduced motion.', motionBody: 'Передавайте <code>disableAnimations: true</code> через <code>MediaQueryData</code>, когда этого требует приложение или platform adapter. Обычные анимации тогда переходят к target мгновенно; сохранённые продолжаются намеренно.',
+      accessibilityLabel: 'Доступность и локализация', accessibilityTitle: 'Сделайте смысл и язык частью дерева.', accessibilityBody: 'LumaFlow разделяет semantics, keyboard focus и locale resources на независимые tree-scoped contracts. Встроенные контролы передают roles и state; используйте <code>Semantics</code> для явных label, hint или action приложения.', localeCardTitle: 'Владейте resource object', localeCardBody: 'Размещайте типизированные строки приложения в <code>Localizations</code>; framework не навязывает package для загрузки или формат таблиц.', semanticsCardTitle: 'Тестируйте на целевых устройствах', semanticsCardBody: 'Иерархия детерминирована, но screen-reader speech и touch exploration всё равно требуют проверки на реальных платформах.',
+      diagnosticsNoteTitle: 'Snapshots не владеют UI.', diagnosticsNote: 'В них хранятся значения и дочерние snapshots, а не живые экземпляры <code>WidgetNode</code>, <code>VisualElement</code> или <code>MountHandle</code>. Захватывайте их в Unity main thread.', inspectionLabel: 'Инспекция', inspectionTitle: 'Инспектируйте retained tree, когда поведению нужно объяснение.', inspectionBody: 'Откройте <code>Window › LumaFlow › Widget Inspector</code> в Unity. Inspector захватывает active mounts с типами widgets и state, native UI Toolkit identity, resolved layout и lifecycle findings.', backToArchitecture: 'Изучить архитектуру <span aria-hidden="true">→</span>'
     }
   };
 
@@ -22,17 +38,31 @@
     const dictionary = translations[language] || translations.en;
     document.documentElement.lang = language;
     document.querySelectorAll('[data-i18n]').forEach(element => {
-      const value = dictionary[element.dataset.i18n];
+      const value = dictionary[element.dataset.i18n] || translations.en[element.dataset.i18n];
       if (!value) return;
       if (value.includes('<')) element.innerHTML = value;
       else element.textContent = value;
     });
-    document.querySelector('[data-language-toggle] span').textContent = language.toUpperCase();
+    const languageToggleLabel = document.querySelector('[data-language-toggle] span');
+    if (languageToggleLabel) languageToggleLabel.textContent = language.toUpperCase();
+    document.querySelectorAll('[data-language-switch]').forEach(button => { button.textContent = language.toUpperCase(); });
     localStorage.setItem('lumaflow-language', language);
   };
 
   const saved = localStorage.getItem('lumaflow-language');
   setLanguage(translations[saved] ? saved : 'en');
-  document.querySelector('[data-language-toggle]')?.addEventListener('click', () => setLanguage('en'));
-  window.LumaFlowI18n = { setLanguage, translations };
+  document.querySelector('[data-language-toggle]')?.addEventListener('click', () => setLanguage((localStorage.getItem('lumaflow-language') || 'en') === 'ru' ? 'en' : 'ru'));
+  document.querySelectorAll('[data-language-switch]').forEach(button => button.addEventListener('click', () => setLanguage((localStorage.getItem('lumaflow-language') || 'en') === 'ru' ? 'en' : 'ru')));
+  const navigation = document.querySelector('.site-nav');
+  if (navigation && !navigation.querySelector('[data-language-switch]')) {
+    const switcher = document.createElement('button');
+    switcher.type = 'button';
+    switcher.className = 'language-switch';
+    switcher.dataset.languageSwitch = '';
+    switcher.setAttribute('aria-label', 'Switch site language');
+    switcher.textContent = (localStorage.getItem('lumaflow-language') || 'en').toUpperCase();
+    switcher.addEventListener('click', () => setLanguage((localStorage.getItem('lumaflow-language') || 'en') === 'ru' ? 'en' : 'ru'));
+    navigation.append(switcher);
+  }
+  window.LumaFlowI18n = { setLanguage, translations, getLanguage: () => localStorage.getItem('lumaflow-language') || 'en' };
 })();
