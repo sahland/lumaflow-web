@@ -8,7 +8,16 @@
     <title>LumaFlow Documentation</title>
     <link rel="canonical" href="https://sahland.github.io/lumaflow-web/docs.html" />
     <link rel="icon" href="assets/lumaflow.png" type="image/png" />
-    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/main.css?v=20260828-routes" />
+    <style>
+      .docs-route-links { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; max-width:780px; margin-top:30px; }
+      .docs-route-links a { display:grid; grid-template-rows:auto 1fr auto; gap:8px; min-height:148px; padding:18px; border:1px solid rgba(74,81,96,.2); background:#faf9f5; color:#4a5160; text-decoration:none; box-shadow:0 10px 24px rgba(74,81,96,.06); transition:transform .18s ease, box-shadow .18s ease, background .18s ease; }
+      .docs-route-links a:hover { background:#fff; transform:translateY(-3px); box-shadow:0 16px 30px rgba(74,81,96,.12); }
+      .docs-route-links span { color:#71869a; font:700 11px/1 "SFMono-Regular",Consolas,monospace; }
+      .docs-route-links strong { align-self:end; font-size:16px; letter-spacing:-.03em; line-height:1.1; }
+      .docs-route-links small { color:#66707d; font-size:12px; line-height:1.35; }
+      @media (max-width:680px) { .docs-route-links { grid-template-columns:1fr; } .docs-route-links a { min-height:104px; } }
+    </style>
   </head>
   <body class="docs-page">
     <a class="skip-link" href="#content" data-i18n="skip">Skip to content</a>
