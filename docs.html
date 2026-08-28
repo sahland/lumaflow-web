@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="LumaFlow documentation: install, mount, compose, react and inspect Unity UI Toolkit interfaces." />
+    <meta name="theme-color" content="#F3F2EE" />
+    <title>LumaFlow Documentation</title>
+    <link rel="canonical" href="https://sahland.github.io/lumaflow-web/docs.html" />
+    <link rel="icon" href="assets/lumaflow.png" type="image/png" />
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body class="docs-page">
+    <a class="skip-link" href="#content" data-i18n="skip">Skip to content</a>
+    <header class="site-header" data-header>
+      <div class="shell nav-wrap">
+        <a class="brand" href="index.html" aria-label="LumaFlow home"><img src="assets/lumaflow.png" alt="" width="32" height="32" /><span>LumaFlow</span></a>
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="visually-hidden" data-i18n="openNavigation">Open navigation</span><span></span><span></span></button>
+        <nav id="site-nav" class="site-nav" aria-label="Primary navigation"><a href="index.html#overview" data-i18n="navOverview">Overview</a><a href="index.html#features" data-i18n="navFeatures">Features</a><a href="index.html#examples" data-i18n="navExamples">Examples</a><a href="docs.html" aria-current="page" data-i18n="navDocs">Docs</a><a class="nav-cta" href="https://github.com/sahland/lumaflow-web" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></nav>
+      </div>
+    </header>
+
+    <main id="content">
+      <section class="docs-hero">
+        <div class="shell docs-hero-inner">
+          <div><p class="eyebrow"><span></span><span data-i18n="eyebrow">Documentation / 0.1</span></p><h1 data-i18n="heroTitle">Build native Unity UI with a clearer mental model.</h1><p class="lede" data-i18n="heroBody">A practical guide to installing LumaFlow, mounting an application and composing reactive UI on top of Unity UI Toolkit.</p></div>
+          <aside class="locale-card" aria-label="Documentation language"><p data-i18n="languageLabel">Language</p><button class="language-button" type="button" data-language-toggle aria-label="Change language"><span>EN</span><span aria-hidden="true">⌄</span></button><small data-i18n="languageHint">English is available now. Russian is prepared next.</small></aside>
+        </div>
+      </section>
+
+      <section class="docs-layout shell" aria-label="Documentation content">
+        <aside class="docs-sidebar"><p data-i18n="onThisPage">On this page</p><nav aria-label="Documentation sections"><a href="#install" data-i18n="sideInstall">Install</a><a href="#mount" data-i18n="sideMount">Mount an application</a><a href="#composition" data-i18n="sideComposition">Compose UI</a><a href="#state" data-i18n="sideState">React to state</a><a href="#inspection" data-i18n="sideInspection">Inspect a mount</a></nav><a class="sidebar-github" href="https://github.com/sahland/lumaflow-web" rel="noopener noreferrer" data-i18n="viewGitHub">View on GitHub ↗</a></aside>
+
+        <article class="docs-content">
+          <section id="install"><p class="section-index">01 / <span data-i18n="installLabel">Install</span></p><h2 data-i18n="installTitle">Add the package, then import the sample.</h2><p data-i18n="installBody">LumaFlow is published as <code>com.lumaflow.ui</code>. Add it through Unity Package Manager from your chosen package source, then import the Getting Started sample from Package Manager.</p><div class="docs-callout"><strong data-i18n="installNoteTitle">Current distribution</strong><p data-i18n="installNote">The public package URL is being prepared. This page avoids inventing an installation command that is not yet available.</p></div></section>
+
+          <section id="mount"><p class="section-index">02 / <span data-i18n="mountLabel">Mount</span></p><h2 data-i18n="mountTitle">Keep ownership of your UIDocument.</h2><p data-i18n="mountBody">LumaFlow mounts into a root <code>VisualElement</code> that your application already owns. Pair the mount lifecycle with your MonoBehaviour lifecycle and dispose it when the host is disabled.</p><div class="docs-code"><div><span>AppBootstrap.cs</span><button class="copy-code" type="button" data-copy-source="mount-code" data-i18n="copy">Copy</button></div><pre id="mount-code"><code><span class="token-keyword">private</span> MountHandle? _mount;
+
+<span class="token-keyword">void</span> OnEnable() {
+  _mount = LumaFlow.LumaFlow.Mount(
+    <span class="token-keyword">new</span> Text(<span class="token-string">"Hello, LumaFlow"</span>),
+    document.rootVisualElement);
+}
+
+<span class="token-keyword">void</span> OnDisable() {
+  _mount?.Dispose();
+}</code></pre></div></section>
+
+          <section id="composition"><p class="section-index">03 / <span data-i18n="compositionLabel">Compose</span></p><h2 data-i18n="compositionTitle">Describe the screen, not its update sequence.</h2><p data-i18n="compositionBody">Widgets are immutable C# descriptions. Compose layouts and controls with familiar typed building blocks; LumaFlow reconciles compatible widget updates against retained UI Toolkit elements.</p><div class="docs-grid"><div><span>01</span><h3 data-i18n="composeCardTitle">Typed layout</h3><p data-i18n="composeCardBody">Rows, columns, constraints and scrolling follow UI Toolkit’s flexbox model.</p></div><div><span>02</span><h3 data-i18n="retainCardTitle">Retained by default</h3><p data-i18n="retainCardBody">Compatible elements keep their identity instead of being recreated for each update.</p></div></div></section>
+
+          <section id="state"><p class="section-index">04 / <span data-i18n="stateLabel">State</span></p><h2 data-i18n="stateTitle">Let the state-owning branch update itself.</h2><p data-i18n="stateBody"><code>State&lt;T&gt;</code> is an explicit reactive value. A mounted branch that reads it is the branch that updates, keeping change propagation local and visible in source.</p><div class="docs-callout cool"><strong data-i18n="stateNoteTitle">Design principle</strong><p data-i18n="stateNote">Keep state close to the UI that owns it. Lift it only when a sibling, route or application boundary genuinely needs to share it.</p></div></section>
+
+          <section id="inspection"><p class="section-index">05 / <span data-i18n="inspectionLabel">Inspection</span></p><h2 data-i18n="inspectionTitle">Inspect the retained tree when behavior needs an explanation.</h2><p data-i18n="inspectionBody">Open <code>Window › LumaFlow › Widget Inspector</code> in Unity. The inspector captures active mounts with widget and state types, native UI Toolkit identity, resolved layout and lifecycle findings.</p><a class="button button-primary" href="index.html#architecture" data-i18n="backToArchitecture">Explore the architecture <span aria-hidden="true">→</span></a></section>
+        </article>
+      </section>
+    </main>
+    <footer class="site-footer"><div class="shell footer-grid"><a class="brand" href="index.html"><img src="assets/lumaflow.png" alt="" width="28" height="28" /><span>LumaFlow</span></a><div class="footer-links"><a href="docs.html" data-i18n="navDocs">Documentation</a><a href="https://github.com/sahland/lumaflow-web" rel="noopener noreferrer">GitHub</a><a href="mailto:endspinrx@mail.ru">endspinrx@mail.ru</a></div><p>© <span data-year></span> LumaFlow. Unity is a trademark of Unity Technologies.</p></div></footer>
+    <script src="scripts/main.js"></script><script src="scripts/i18n.js"></script>
+  </body>
+</html>

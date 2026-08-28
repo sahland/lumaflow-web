@@ -2,7 +2,6 @@
   const header = document.querySelector('[data-header]');
   const toggle = document.querySelector('.menu-toggle');
   const nav = document.querySelector('.site-nav');
-  const copy = document.querySelector('.copy-code');
 
   const updateHeader = () => header.classList.toggle('is-scrolled', window.scrollY > 8);
   updateHeader();
@@ -16,13 +15,16 @@
     if (event.target.matches('a')) { nav.classList.remove('is-open'); toggle?.setAttribute('aria-expanded', 'false'); }
   });
 
-  copy?.addEventListener('click', async () => {
-    const code = document.querySelector('.code-panel code')?.innerText;
+  document.querySelectorAll('.copy-code').forEach(copy => copy.addEventListener('click', async () => {
+    const source = copy.dataset.copySource;
+    const code = source
+      ? document.getElementById(source)?.innerText
+      : copy.closest('.code-panel')?.querySelector('code')?.innerText;
     if (!code || !navigator.clipboard) return;
     await navigator.clipboard.writeText(code);
     copy.textContent = 'Copied';
     window.setTimeout(() => { copy.textContent = 'Copy'; }, 1500);
-  });
+  }));
 
   document.querySelector('[data-year]').textContent = new Date().getFullYear();
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
