@@ -47,10 +47,15 @@
     if (languageToggleLabel) languageToggleLabel.textContent = language.toUpperCase();
     document.querySelectorAll('[data-language-switch]').forEach(button => { button.textContent = language.toUpperCase(); });
     localStorage.setItem('lumaflow-language', language);
+    const homeLanguage = document.body.dataset.homePage;
+    if (homeLanguage && homeLanguage !== language) {
+      window.location.href = language === 'ru' ? 'ru.html' : 'index.html';
+    }
   };
 
   const saved = localStorage.getItem('lumaflow-language');
-  setLanguage(translations[saved] ? saved : 'en');
+  const pageDefault = document.body.dataset.homePage || 'en';
+  setLanguage(translations[saved] ? saved : pageDefault);
   document.querySelector('[data-language-toggle]')?.addEventListener('click', () => setLanguage((localStorage.getItem('lumaflow-language') || 'en') === 'ru' ? 'en' : 'ru'));
   document.querySelectorAll('[data-language-switch]').forEach(button => button.addEventListener('click', () => setLanguage((localStorage.getItem('lumaflow-language') || 'en') === 'ru' ? 'en' : 'ru')));
   const navigation = document.querySelector('.site-nav');
