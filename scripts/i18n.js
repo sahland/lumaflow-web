@@ -1,4 +1,8 @@
 (() => {
+  // Documentation has complete, URL-based language versions. Do not run the
+  // legacy landing-page translator there: partial text substitution produces
+  // mixed-language pages and breaks stable language links.
+  if (document.body.matches('.docs-page, .docs-home')) return;
   const translations = {
     en: {
       skip: 'Skip to content', openNavigation: 'Open navigation', navOverview: 'Overview', navFeatures: 'Features', navExamples: 'Examples', navDocs: 'Docs',

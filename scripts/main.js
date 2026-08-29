@@ -3,7 +3,7 @@
   const toggle = document.querySelector('.menu-toggle');
   const nav = document.querySelector('.site-nav');
 
-  const updateHeader = () => header.classList.toggle('is-scrolled', window.scrollY > 8);
+  const updateHeader = () => header?.classList.toggle('is-scrolled', window.scrollY > 8);
   updateHeader();
   window.addEventListener('scroll', updateHeader, { passive: true });
 
@@ -26,6 +26,61 @@
   });
 
   const currentPage = location.pathname.split('/').pop() || 'index.html';
+
+  const siteOrigin = 'https://sahland.github.io/lumaflow-web/';
+  const canonicalUrl = new URL(currentPage === 'index.html' ? './' : currentPage, siteOrigin).href;
+  const ensureMeta = (selector, attributes) => {
+    let element = document.head.querySelector(selector);
+    if (!element) { element = document.createElement(attributes.tag || 'meta'); document.head.append(element); }
+    Object.entries(attributes).forEach(([name, value]) => { if (name !== 'tag') element.setAttribute(name, value); });
+  };
+  ensureMeta('link[rel="canonical"]', { tag: 'link', rel: 'canonical', href: canonicalUrl });
+  const description = document.head.querySelector('meta[name="description"]')?.content || 'Declarative reactive UI for Unity UI Toolkit.';
+  ensureMeta('meta[property="og:title"]', { property: 'og:title', content: document.title });
+  ensureMeta('meta[property="og:description"]', { property: 'og:description', content: description });
+  ensureMeta('meta[property="og:type"]', { property: 'og:type', content: 'website' });
+  ensureMeta('meta[property="og:url"]', { property: 'og:url', content: canonicalUrl });
+  ensureMeta('meta[property="og:image"]', { property: 'og:image', content: `${siteOrigin}assets/lumaflow.png` });
+  ensureMeta('meta[name="twitter:card"]', { name: 'twitter:card', content: 'summary' });
+
+  // Documentation uses one navigation model on every page. The page itself
+  // remains complete HTML, while this layer prevents individual guides from
+  // drifting as the documentation grows.
+  if (document.body.matches('.docs-page, .docs-home') && nav) {
+    const russian = document.documentElement.lang === 'ru';
+    const counterparts = {
+      'docs.html': 'docs-ru.html', 'docs-ru.html': 'docs.html',
+      'tutorial.html': 'tutorial-ru.html', 'tutorial-ru.html': 'tutorial.html',
+      'architecture.html': 'architecture-ru.html', 'architecture-ru.html': 'architecture.html',
+      'lists.html': 'lists-ru.html', 'lists-ru.html': 'lists.html',
+      'overlays.html': 'overlays-ru.html', 'overlays-ru.html': 'overlays.html',
+      'controls.html': 'controls-ru.html', 'controls-ru.html': 'controls.html',
+      'accessibility.html': 'accessibility-ru.html', 'accessibility-ru.html': 'accessibility.html',
+      'workflow.html': 'workflow-ru.html', 'workflow-ru.html': 'workflow.html',
+      'reference.html': 'reference-ru.html', 'reference-ru.html': 'reference.html',
+      'api.html': 'api-ru.html', 'api-ru.html': 'api.html'
+    };
+    const items = russian
+      ? [['Документация', 'docs-ru.html'], ['Начало', 'tutorial-ru.html'], ['Основы', 'architecture-ru.html'], ['Практика', 'controls-ru.html'], ['API', 'api-ru.html']]
+      : [['Documentation', 'docs.html'], ['Start', 'tutorial.html'], ['Concepts', 'architecture.html'], ['Guides', 'controls.html'], ['API', 'api.html']];
+    const languagePage = counterparts[currentPage] || (russian ? 'docs.html' : 'docs-ru.html');
+    nav.innerHTML = items.map(([label, href]) => `<a href="${href}">${label}</a>`).join('')
+      + '<a href="https://github.com/sahland/lumaflow" rel="noopener noreferrer">GitHub</a>'
+      + `<a class="docs-language" href="${languagePage}" hreflang="${russian ? 'en' : 'ru'}">${russian ? 'EN' : 'RU'}</a>`;
+    if (russian) document.querySelectorAll('a[href="api.html"]').forEach(link => link.setAttribute('href', 'api-ru.html'));
+  }
+
+  if (document.body.dataset.homePage === 'ru') {
+    const russianRoutes = {
+      'docs.html': 'docs-ru.html', 'tutorial.html': 'tutorial-ru.html',
+      'architecture.html': 'architecture-ru.html', 'reference.html': 'reference-ru.html',
+      'api.html': 'api-ru.html'
+    };
+    document.querySelectorAll('a[href]').forEach(link => {
+      const raw = link.getAttribute('href');
+      if (russianRoutes[raw]) link.setAttribute('href', russianRoutes[raw]);
+    });
+  }
   document.querySelectorAll('.site-nav a').forEach(link => {
     const linkedPage = new URL(link.href, location.href).pathname.split('/').pop() || 'index.html';
     if (!link.hash && linkedPage === currentPage) link.classList.add('is-current');
@@ -70,7 +125,8 @@
   window.addEventListener('scroll', updateBackToTop, { passive: true });
   backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' }));
 
-  document.querySelector('[data-year]').textContent = new Date().getFullYear();
+  const year = document.querySelector('[data-year]');
+  if (year) year.textContent = new Date().getFullYear();
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (!prefersReducedMotion && 'IntersectionObserver' in window) {
     const observer = new IntersectionObserver(entries => entries.forEach(entry => {

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url><loc>https://sahland.github.io/lumaflow-web/</loc><xhtml:link rel="alternate" hreflang="ru" href="https://sahland.github.io/lumaflow-web/ru.html"/></url>
+  <url><loc>https://sahland.github.io/lumaflow-web/ru.html</loc><xhtml:link rel="alternate" hreflang="en" href="https://sahland.github.io/lumaflow-web/"/></url>
+  <url><loc>https://sahland.github.io/lumaflow-web/docs.html</loc><xhtml:link rel="alternate" hreflang="ru" href="https://sahland.github.io/lumaflow-web/docs-ru.html"/></url>
+  <url><loc>https://sahland.github.io/lumaflow-web/docs-ru.html</loc><xhtml:link rel="alternate" hreflang="en" href="https://sahland.github.io/lumaflow-web/docs.html"/></url>
+  <url><loc>https://sahland.github.io/lumaflow-web/tutorial.html</loc></url><url><loc>https://sahland.github.io/lumaflow-web/tutorial-ru.html</loc></url>
+  <url><loc>https://sahland.github.io/lumaflow-web/architecture.html</loc></url><url><loc>https://sahland.github.io/lumaflow-web/architecture-ru.html</loc></url>
+  <url><loc>https://sahland.github.io/lumaflow-web/lists.html</loc></url><url><loc>https://sahland.github.io/lumaflow-web/lists-ru.html</loc></url>
+  <url><loc>https://sahland.github.io/lumaflow-web/overlays.html</loc></url><url><loc>https://sahland.github.io/lumaflow-web/overlays-ru.html</loc></url>
+  <url><loc>https://sahland.github.io/lumaflow-web/controls.html</loc></url><url><loc>https://sahland.github.io/lumaflow-web/controls-ru.html</loc></url>
+  <url><loc>https://sahland.github.io/lumaflow-web/accessibility.html</loc></url><url><loc>https://sahland.github.io/lumaflow-web/accessibility-ru.html</loc></url>
+  <url><loc>https://sahland.github.io/lumaflow-web/workflow.html</loc></url><url><loc>https://sahland.github.io/lumaflow-web/workflow-ru.html</loc></url>
+  <url><loc>https://sahland.github.io/lumaflow-web/reference.html</loc></url><url><loc>https://sahland.github.io/lumaflow-web/reference-ru.html</loc></url>
+  <url><loc>https://sahland.github.io/lumaflow-web/api.html</loc></url><url><loc>https://sahland.github.io/lumaflow-web/api-ru.html</loc></url>
+</urlset>

@@ -1,4 +1,5 @@
 (() => {
+  const russian = document.documentElement.lang === 'ru';
   const groups = {
     'Application and state': ['LumaFlow', 'MountHandle', 'Widget', 'WidgetKey', 'KeyedSubtree', 'KeyedChild', 'StatelessWidget', 'StatefulWidget', 'WidgetState', 'State', 'ReactiveBuilder', 'BuildContext', 'AsyncAction', 'AsyncActionScope', 'AsyncActionStatus', 'AsyncButton'],
     'Layout and structure': ['Row', 'Column', 'Stack', 'Positioned', 'Align', 'Alignment', 'Center', 'Padding', 'Margin', 'Container', 'Card', 'SizedBox', 'ConstrainedBox', 'BoxConstraints', 'LayoutBuilder', 'LayoutConstraints', 'Expanded', 'Flexible', 'FlexFit', 'Spacer', 'ScrollView', 'Axis', 'MainAxisAlignment', 'CrossAxisAlignment', 'Opacity'],
@@ -46,10 +47,55 @@
     WidgetTreeDiagnostics: 'Immutable, non-owning snapshot of a mounted tree for tooling and issue reports.',
     Native: 'Embeds a detached UI Toolkit VisualElement at an integration edge. The borrowed element must not be reparented while mounted.'
   };
+  const categoryLabelsRu = {
+    'Application and state': 'Приложение и состояние',
+    'Layout and structure': 'Компоновка и структура',
+    'Controls and forms': 'Контролы и формы',
+    'Navigation and overlays': 'Навигация и оверлеи',
+    'Lists, themes and media': 'Списки, темы и медиа',
+    'Animation, accessibility and diagnostics': 'Анимация, доступность и диагностика',
+    'Other public API': 'Прочий публичный API'
+  };
+  const guideForCategory = {
+    'Application and state': ['architecture.html', 'architecture-ru.html', 'Architecture guide', 'Архитектура'],
+    'Layout and structure': ['reference.html#layout', 'reference-ru.html#constraints', 'Layout contract', 'Контракт layout'],
+    'Controls and forms': ['controls.html', 'controls-ru.html', 'Controls guide', 'Контролы и формы'],
+    'Navigation and overlays': ['overlays.html', 'overlays-ru.html', 'Navigation guide', 'Навигация и оверлеи'],
+    'Lists, themes and media': ['lists.html', 'lists-ru.html', 'Lists guide', 'Списки и Key'],
+    'Animation, accessibility and diagnostics': ['accessibility.html', 'accessibility-ru.html', 'Accessibility guide', 'Доступность']
+  };
+  const coreRu = {
+    LumaFlow: 'Точка входа для монтирования приложения в принадлежащий вызывающему коду корень UI Toolkit.',
+    MountHandle: 'Управляет одним смонтированным деревом: Dispose, Rebuild, Restart и диагностика.',
+    Widget: 'Неизменяемое описание элемента интерфейса. Widget — конфигурация, а не нативное представление.',
+    WidgetKey: 'Стабильная локальная идентичность ребёнка внутри одного набора соседей.',
+    State: 'Явное наблюдаемое значение. Зависимая ветвь может обновиться без перестроения несвязанного UI.',
+    ReactiveBuilder: 'Локальная реактивная граница, перестраиваемая при изменении одного State.',
+    BuildContext: 'Доступ к унаследованной конфигурации LumaFlow во время Build.',
+    Row: 'Горизонтальная flex-компоновка.', Column: 'Вертикальная flex-компоновка.',
+    LayoutBuilder: 'Строит ветвь по фактическим локальным constraints.',
+    ListView: 'Типизированная обёртка над нативным виртуализированным ListView UI Toolkit.',
+    ListViewController: 'Сохраняемый controller прокрутки и перехода к строке по ключу.',
+    Theme: 'Передаёт неизменяемый ThemeData дочернему дереву.',
+    Navigator: 'Управляет сохраняемым стеком маршрутов; создаётся вне Build.',
+    OverlayController: 'Управляет отдельным стеком диалогов, drawer, popover и toast.',
+    Localizations: 'Передаёт Locale и типизированные ресурсы приложения дочернему дереву.',
+    Semantics: 'Добавляет label, hint, role, value и action для accessibility.',
+    Form: 'Область FormState для управляемых значений и валидации.',
+    TextField: 'Управляемое текстовое поле без повторного onChanged при программном обновлении.',
+    Native: 'Встраивает отдельный VisualElement UI Toolkit на границе интеграции.'
+  };
   const base = name => name.replace(/<.*$/, '');
   const categoryOf = type => Object.keys(groups).find(group => groups[group].includes(base(type.name))) || 'Other public API';
   const describe = type => {
     const name = base(type.name);
+    if (russian && coreRu[name]) return coreRu[name];
+    if (russian) {
+      if (type.kind === 'enum') return `Набор именованных вариантов для API ${name}.`;
+      if (name.endsWith('Style')) return `Визуальная конфигурация ${name.replace(/Style$/, '')}; заданные поля переопределяют активную тему.`;
+      if (name.endsWith('Theme')) return `Тема со значениями по умолчанию для дочерних ${name.replace(/Theme$/, '')}.`;
+      return `Публичный ${type.kind} из раздела «${categoryLabelsRu[categoryOf(type)] || categoryOf(type)}». Точные поддерживаемые сигнатуры приведены ниже.`;
+    }
     if (core[name]) return core[name];
     if (type.kind === 'enum') return `Named options used by the ${name} API. Choose a value explicitly when the default does not express the intended behavior.`;
     if (type.kind === 'struct') return `Immutable value used to configure or describe ${name}. Treat it as a value object and replace it rather than mutating mounted UI.`;
@@ -66,19 +112,40 @@
     return `Public ${type.kind} in LumaFlow’s runtime surface. Review its constructor and members below for the supported configuration boundary.`;
   };
   const esc = value => value.replace(/[&<>]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' })[char]);
+  const slug = value => base(value).replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase();
   const render = types => {
     const host = document.querySelector('[data-api-results]');
-    host.innerHTML = types.map(type => `<article class="api-type"><div class="api-type-heading"><span>${esc(categoryOf(type))}</span><h2><code>${esc(type.name)}</code></h2><p>${esc(describe(type))}</p></div><details><summary>${type.members.length} public member${type.members.length === 1 ? '' : 's'}</summary><pre><code>${esc(type.signature)}\n${type.members.map(member => `  ${member}`).join('\n')}</code></pre></details></article>`).join('');
-    document.querySelector('[data-api-result-count]').textContent = `${types.length} public type${types.length === 1 ? '' : 's'}`;
+    host.innerHTML = types.length ? types.map(type => { const category = categoryOf(type); const guide = guideForCategory[category]; return `<article class="api-type" id="type-${slug(type.name)}"><div class="api-type-heading"><span>${esc(russian ? categoryLabelsRu[category] : category)}</span><h2><a href="#type-${slug(type.name)}"><code>${esc(type.name)}</code></a></h2><p>${esc(describe(type))}</p>${guide ? `<a class="api-guide-link" href="${guide[russian ? 1 : 0]}">${esc(guide[russian ? 3 : 2])} →</a>` : ''}</div><details><summary>${russian ? `Публичных members: ${type.members.length}` : `${type.members.length} public member${type.members.length === 1 ? '' : 's'}`}</summary><pre><code>${esc(type.signature)}\n${type.members.map(member => `  ${member}`).join('\n')}</code></pre></details></article>`; }).join('') : `<div class="api-empty"><strong>${russian ? 'Ничего не найдено' : 'No matching API'}</strong><p>${russian ? 'Измените запрос или выберите все категории.' : 'Change the query or return to all categories.'}</p></div>`;
+    document.querySelector('[data-api-result-count]').textContent = russian ? `Найдено типов: ${types.length}` : `${types.length} public type${types.length === 1 ? '' : 's'}`;
   };
   fetch('data/api-index.json').then(response => response.json()).then(types => {
-    document.querySelector('[data-api-count]').textContent = `${types.length} public types`;
+    document.querySelector('[data-api-count]').textContent = russian ? `${types.length} публичных типов` : `${types.length} public types`;
     const select = document.querySelector('[data-api-category]');
     const navigation = document.querySelector('[data-api-navigation]');
-    Object.keys(groups).forEach(group => { select.insertAdjacentHTML('beforeend', `<option value="${group}">${group}</option>`); navigation.insertAdjacentHTML('beforeend', `<a href="#" data-category="${group}">${group}</a>`); });
-    const update = () => { const query = document.querySelector('[data-api-search]').value.toLowerCase(); const group = select.value; render(types.filter(type => (group === 'all' || categoryOf(type) === group) && `${type.name} ${type.members.join(' ')}`.toLowerCase().includes(query))); };
-    select.addEventListener('change', update); document.querySelector('[data-api-search]').addEventListener('input', update);
+    Object.keys(groups).forEach(group => { const label = russian ? categoryLabelsRu[group] : group; select.insertAdjacentHTML('beforeend', `<option value="${group}">${label}</option>`); navigation.insertAdjacentHTML('beforeend', `<a href="#" data-category="${group}">${label}</a>`); });
+    const search = document.querySelector('[data-api-search]');
+    const clear = document.createElement('button');
+    clear.type = 'button'; clear.className = 'api-search-clear'; clear.textContent = russian ? 'Очистить' : 'Clear'; clear.hidden = true;
+    search.closest('label').append(clear);
+    const params = new URLSearchParams(location.search);
+    search.value = params.get('q') || '';
+    if ([...select.options].some(option => option.value === params.get('category'))) select.value = params.get('category');
+    const update = () => {
+      const query = search.value.trim().toLowerCase(); const group = select.value;
+      clear.hidden = !query && group === 'all';
+      render(types.filter(type => (group === 'all' || categoryOf(type) === group) && `${type.name} ${type.members.join(' ')}`.toLowerCase().includes(query)));
+      const next = new URLSearchParams();
+      if (query) next.set('q', search.value.trim());
+      if (group !== 'all') next.set('category', group);
+      history.replaceState(null, '', `${location.pathname}${next.size ? `?${next}` : ''}${location.hash}`);
+    };
+    select.addEventListener('change', update); search.addEventListener('input', update);
+    clear.addEventListener('click', () => { search.value = ''; select.value = 'all'; update(); search.focus(); });
     navigation.addEventListener('click', event => { const link = event.target.closest('[data-category]'); if (!link) return; event.preventDefault(); select.value = link.dataset.category; update(); document.querySelector('[data-api-search]').focus(); });
-    render(types);
-  }).catch(() => { document.querySelector('[data-api-results]').textContent = 'The API index could not be loaded.'; });
+    document.addEventListener('keydown', event => {
+      if (event.key === '/' && !event.ctrlKey && !event.metaKey && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName)) { event.preventDefault(); search.focus(); }
+      if (event.key === 'Escape' && document.activeElement === search && search.value) { search.value = ''; update(); }
+    });
+    update();
+  }).catch(() => { document.querySelector('[data-api-results]').textContent = russian ? 'Не удалось загрузить индекс API.' : 'The API index could not be loaded.'; });
 })();
