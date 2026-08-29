@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Build scalable virtualized lists with LumaFlow and Unity UI Toolkit." />
+    <meta name="theme-color" content="#F3F2EE" />
+    <title>Virtualized lists · LumaFlow</title>
+    <link rel="canonical" href="https://sahland.github.io/lumaflow-web/lists.html" />
+    <link rel="icon" href="assets/lumaflow.png" type="image/png" />
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/brand.css?v=20260829" />
+  </head>
+  <body class="docs-page">
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header class="site-header" data-header><div class="shell nav-wrap"><a class="brand" href="index.html" aria-label="LumaFlow home"><img src="assets/lumaflow.png" alt="" width="32" height="32" /><span>LumaFlow</span></a><button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="visually-hidden">Open navigation</span><span></span><span></span></button><nav id="site-nav" class="site-nav" aria-label="Primary navigation"><a href="docs.html">Guides</a><a href="tutorial.html">Tutorial</a><a href="lists.html" aria-current="page">Lists</a><a href="reference.html">API reference</a><a class="nav-cta" href="https://github.com/sahland/lumaflow" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></nav></div></header>
+    <main id="content">
+      <section class="docs-hero"><div class="shell docs-hero-inner"><div><p class="eyebrow"><span></span><span>Guide / Virtualized lists</span></p><h1>Keep the data large. Keep the mounted tree small.</h1><p class="lede"><code>ListView&lt;T&gt;</code> maps to UI Toolkit's native virtualized ListView, mounting widget rows only for the visible and recycle range.</p></div><aside class="locale-card"><p>Use when</p><strong>Rows can grow</strong><small>Projects, messages, search results and other scrollable collections.</small></aside></div></section>
+      <section class="docs-layout shell"><aside class="docs-sidebar"><p>In this guide</p><nav aria-label="List guide sections"><a href="#basic">Basic list</a><a href="#identity">Stable identity</a><a href="#selection">Controlled selection</a><a href="#scroll">Scroll restoration</a></nav><a class="sidebar-github" href="docs.html">All guides →</a></aside>
+        <article class="docs-content">
+          <section id="basic"><p class="section-index">01 / Basic list</p><h2>Start with a typed row builder.</h2><p>Use a fixed item height for uniform rows. Omitting it selects native dynamic-height virtualization.</p><div class="docs-code"><div><span>ProjectsList.cs</span></div><pre><code><span class="token-keyword">new</span> ListView&lt;Project&gt;(
+  projects,
+  project =&gt; <span class="token-keyword">new</span> ProjectRow(project),
+  itemHeight: <span class="token-number">56f</span>);</code></pre></div></section>
+          <section id="identity"><p class="section-index">02 / Identity</p><h2>Key rows that carry state.</h2><p>Give every row a deterministic, unique key when it owns focus, subscriptions or local state. A key follows a compatible realized row through insertion and reordering.</p><div class="docs-code"><div><span>ProjectsList.cs</span></div><pre><code><span class="token-keyword">new</span> ListView&lt;Project&gt;(
+  projects,
+  project =&gt; <span class="token-keyword">new</span> ProjectRow(project),
+  itemHeight: <span class="token-number">56f</span>,
+  itemKey: project =&gt; <span class="token-keyword">new</span> WidgetKey(project.Id));</code></pre></div><div class="docs-callout"><strong>Do not mutate a collection in place.</strong><p>For reactive replacement, pass <code>State&lt;IReadOnlyList&lt;T&gt;&gt;</code> and replace its complete value. A mutable collection cannot notify the list by itself.</p></div></section>
+          <section id="selection"><p class="section-index">03 / Selection</p><h2>Keep selection outside the list.</h2><p>Selection is controlled and key-based. User interaction commits the state before the callback runs, while programmatic changes update native selection without replaying the callback.</p><div class="docs-code"><div><span>ProjectsList.cs</span></div><pre><code><span class="token-keyword">var</span> selected = <span class="token-keyword">new</span> State&lt;IReadOnlyList&lt;WidgetKey&gt;&gt;(
+  Array.Empty&lt;WidgetKey&gt;());
+
+<span class="token-keyword">new</span> ListView&lt;Project&gt;(
+  projects, BuildRow,
+  itemKey: project =&gt; <span class="token-keyword">new</span> WidgetKey(project.Id),
+  selectionMode: ListSelectionMode.Multiple,
+  selectedKeys: selected);</code></pre></div></section>
+          <section id="scroll"><p class="section-index">04 / Scroll</p><h2>Retain a controller when scroll position matters.</h2><p>Keep the controller at the same ownership boundary as the list configuration. It restores the offset after the native list has its geometry.</p><div class="docs-code"><div><span>ProjectsList.cs</span></div><pre><code><span class="token-keyword">private readonly</span> ListViewController _projectsController = <span class="token-keyword">new</span>();
+
+_projectsController.JumpTo(<span class="token-number">320f</span>);
+_projectsController.ScrollTo(<span class="token-keyword">new</span> WidgetKey(projectId));</code></pre></div><a class="button button-primary" href="docs.html">Return to the guides <span aria-hidden="true">→</span></a></section>
+        </article>
+      </section>
+    </main>
+    <footer class="site-footer"><div class="shell footer-grid"><a class="brand" href="index.html"><img src="assets/lumaflow.png" alt="" width="28" height="28" /><span>LumaFlow</span></a><div class="footer-links"><a href="docs.html">Documentation</a><a href="https://github.com/sahland/lumaflow" rel="noopener noreferrer">GitHub</a></div><p>© <span data-year></span> LumaFlow. Unity is a trademark of Unity Technologies.</p></div></footer>
+    <script src="scripts/main.js"></script><script src="scripts/i18n.js"></script>
+  </body>
+</html>
