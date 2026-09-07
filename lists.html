@@ -18,16 +18,16 @@
       <section class="docs-hero"><div class="shell docs-hero-inner"><div><p class="eyebrow"><span></span><span>Guide / Virtualized lists</span></p><h1>Keep the data large. Keep the mounted tree small.</h1><p class="lede"><code>ListView&lt;T&gt;</code> maps to UI Toolkit's native virtualized ListView, mounting widget rows only for the visible and recycle range.</p></div><aside class="locale-card"><p>Use when</p><strong>Rows can grow</strong><small>Projects, messages, search results and other scrollable collections.</small></aside></div></section>
       <section class="docs-layout shell"><aside class="docs-sidebar"><p>In this guide</p><nav aria-label="List guide sections"><a href="#basic">Basic list</a><a href="#identity">Stable identity</a><a href="#selection">Controlled selection</a><a href="#scroll">Scroll restoration</a></nav><a class="sidebar-github" href="docs.html">All guides →</a></aside>
         <article class="docs-content">
-          <section id="basic"><p class="section-index">01 / Basic list</p><h2>Start with a typed row builder.</h2><p>Use a fixed item height for uniform rows. Omitting it selects native dynamic-height virtualization.</p><div class="docs-code"><div><span>ProjectsList.cs</span></div><pre><code><span class="token-keyword">new</span> ListView&lt;Project&gt;(
+          <section id="basic"><h2>Start with a typed row builder.</h2><p>Use a fixed item height for uniform rows. Omitting it selects native dynamic-height virtualization.</p><div class="docs-code"><div><span>ProjectsList.cs</span></div><pre><code><span class="token-keyword">new</span> ListView&lt;Project&gt;(
   projects,
   project =&gt; <span class="token-keyword">new</span> ProjectRow(project),
   itemHeight: <span class="token-number">56f</span>);</code></pre></div></section>
-          <section id="identity"><p class="section-index">02 / Identity</p><h2>Key rows that carry state.</h2><p>Give every row a deterministic, unique key when it owns focus, subscriptions or local state. A key follows a compatible realized row through insertion and reordering.</p><div class="docs-code"><div><span>ProjectsList.cs</span></div><pre><code><span class="token-keyword">new</span> ListView&lt;Project&gt;(
+          <section id="identity"><h2>Key rows that carry state.</h2><p>Give every row a deterministic, unique key when it owns focus, subscriptions or local state. A key follows a compatible realized row through insertion and reordering.</p><div class="docs-code"><div><span>ProjectsList.cs</span></div><pre><code><span class="token-keyword">new</span> ListView&lt;Project&gt;(
   projects,
   project =&gt; <span class="token-keyword">new</span> ProjectRow(project),
   itemHeight: <span class="token-number">56f</span>,
   itemKey: project =&gt; <span class="token-keyword">new</span> WidgetKey(project.Id));</code></pre></div><div class="docs-callout"><strong>Do not mutate a collection in place.</strong><p>For reactive replacement, pass <code>State&lt;IReadOnlyList&lt;T&gt;&gt;</code> and replace its complete value. A mutable collection cannot notify the list by itself.</p></div></section>
-          <section id="selection"><p class="section-index">03 / Selection</p><h2>Keep selection outside the list.</h2><p>Selection is controlled and key-based. User interaction commits the state before the callback runs, while programmatic changes update native selection without replaying the callback.</p><div class="docs-code"><div><span>ProjectsList.cs</span></div><pre><code><span class="token-keyword">var</span> selected = <span class="token-keyword">new</span> State&lt;IReadOnlyList&lt;WidgetKey&gt;&gt;(
+          <section id="selection"><h2>Keep selection outside the list.</h2><p>Selection is controlled and key-based. User interaction commits the state before the callback runs, while programmatic changes update native selection without replaying the callback.</p><div class="docs-code"><div><span>ProjectsList.cs</span></div><pre><code><span class="token-keyword">var</span> selected = <span class="token-keyword">new</span> State&lt;IReadOnlyList&lt;WidgetKey&gt;&gt;(
   Array.Empty&lt;WidgetKey&gt;());
 
 <span class="token-keyword">new</span> ListView&lt;Project&gt;(
@@ -35,7 +35,7 @@
   itemKey: project =&gt; <span class="token-keyword">new</span> WidgetKey(project.Id),
   selectionMode: ListSelectionMode.Multiple,
   selectedKeys: selected);</code></pre></div></section>
-          <section id="scroll"><p class="section-index">04 / Scroll</p><h2>Retain a controller when scroll position matters.</h2><p>Keep the controller at the same ownership boundary as the list configuration. It restores the offset after the native list has its geometry.</p><div class="docs-code"><div><span>ProjectsList.cs</span></div><pre><code><span class="token-keyword">private readonly</span> ListViewController _projectsController = <span class="token-keyword">new</span>();
+          <section id="scroll"><h2>Retain a controller when scroll position matters.</h2><p>Keep the controller at the same ownership boundary as the list configuration. It restores the offset after the native list has its geometry.</p><div class="docs-code"><div><span>ProjectsList.cs</span></div><pre><code><span class="token-keyword">private readonly</span> ListViewController _projectsController = <span class="token-keyword">new</span>();
 
 _projectsController.JumpTo(<span class="token-number">320f</span>);
 _projectsController.ScrollTo(<span class="token-keyword">new</span> WidgetKey(projectId));</code></pre></div><a class="button button-primary" href="docs.html">Return to the guides <span aria-hidden="true">→</span></a></section>

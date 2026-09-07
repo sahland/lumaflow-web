@@ -94,8 +94,6 @@ body {
 .hero-mark img { filter: drop-shadow(0 28px 25px rgba(54,60,76,.2)); }
 .mark-caption { border-radius: 13px; background: rgba(255,254,250,.82); backdrop-filter: blur(12px); }
 
-.section-index { color: #7d7798; }
-.section-index::before { background: linear-gradient(90deg, var(--blue-strong), var(--brand-purple)); }
 .principle-grid > *, .feature-grid > *, .docs-grid > *, .architecture-grid > *, .workflow-grid > *, .reference-card, .api-card {
   border-color: var(--line); border-radius: 20px; background: rgba(255,254,250,.72); box-shadow: var(--shadow-soft);
   transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
