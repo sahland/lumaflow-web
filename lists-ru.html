@@ -1,13 +1,100 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Виртуализированные списки, ключи, выбор и прокрутка в LumaFlow."><title>Списки в LumaFlow</title><link rel="icon" href="assets/lumaflow.png"><link rel="stylesheet" href="styles/main.css"><link rel="stylesheet" href="styles/brand.css?v=20260829"></head><body class="docs-page">
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Виртуализированные списки, ключи, выбор и прокрутка в LumaFlow."><title>Списки в LumaFlow</title><link rel="icon" href="assets/lumaflow.png"><link rel="stylesheet" href="styles/main.css"><link rel="stylesheet" href="styles/brand.css?v=20260829"><link rel="stylesheet" href="styles/guide.css?v=20261012"></head><body class="docs-page">
 <a class="skip-link" href="#content">Перейти к содержанию</a><header class="site-header" data-header><div class="shell nav-wrap"><a class="brand" href="ru.html"><img src="assets/lumaflow.png" alt="" width="32" height="32"><span>LumaFlow</span></a><button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="visually-hidden">Открыть навигацию</span><span></span><span></span></button><nav id="site-nav" class="site-nav"><a href="docs-ru.html">Документация</a><a href="architecture-ru.html">Архитектура</a><a href="lists-ru.html" aria-current="page">Списки</a><a href="overlays-ru.html">Навигация</a><a href="lists.html" lang="en">EN</a></nav></div></header>
 <main id="content"><section class="docs-hero"><div class="shell docs-hero-inner"><div><p class="eyebrow"><span></span><span>Руководство / Списки</span></p><h1>Данных может быть много. Смонтированных строк — нет.</h1><p class="lede"><code>ListView&lt;T&gt;</code> использует нативную виртуализацию UI Toolkit и монтирует Widget только для видимых и подготовленных к переиспользованию строк.</p></div><aside class="locale-card"><p>Используйте для</p><strong>Растущих коллекций</strong><small>Проектов, сообщений, результатов поиска и других прокручиваемых данных.</small></aside></div></section>
-<section class="docs-layout shell"><aside class="docs-sidebar"><p>В руководстве</p><nav><a href="#choose">Что выбрать</a><a href="#basic">Базовый список</a><a href="#identity">Стабильная идентичность</a><a href="#selection">Управляемый выбор</a><a href="#scroll">Прокрутка</a></nav><a class="sidebar-github" href="docs-ru.html">Вся документация →</a></aside><article class="docs-content">
+<section class="docs-layout shell"><aside class="docs-sidebar"><p>В руководстве</p><nav><a href="#list-demo">Поиск и сортировка целиком</a><a href="#choose">Что выбрать</a><a href="#basic">Базовый список</a><a href="#identity">Стабильная идентичность</a><a href="#selection">Управляемый выбор</a><a href="#scroll">Прокрутка</a></nav><a class="sidebar-github" href="docs-ru.html">Вся документация →</a></aside><article class="docs-content"><section id="list-demo"><h2>Список из 2000 проектов: поиск, сортировка и выбор.</h2><p>После <a href="tutorial-ru.html">первого урока</a> добавьте файл ниже и <code>using LumaFlowDocs.NextSteps;</code> в AppRoot. Замените CounterPage на <code>new ProjectListDemo()</code> внутри существующего Scaffold. Bootstrap, тема и Mount остаются прежними.</p><p>Пример полностью локальный: он создаёт 2000 тестовых проектов в памяти, не загружает их с сервера и не записывает изменения на диск. Идентификатор проекта не меняется при сортировке и не переиспользуется после удаления.</p><div class="docs-code"><div><span>ProjectListDemo.cs · полный файл</span><button class="copy-code" type="button" data-copy-source="code-ProjectListDemo">Копировать</button></div><pre id="code-ProjectListDemo" tabindex="0"><code>using System;
+using System.Collections.Generic;
+using System.Linq;
+using LumaFlow;
+
+namespace LumaFlowDocs.NextSteps {
+    public sealed class ProjectListDemo : StatefulWidget&lt;ProjectListDemoState&gt; { }
+
+    public sealed class ProjectListDemoState : WidgetState {
+        private readonly List&lt;Project&gt; _all = new();
+        private readonly State&lt;string&gt; _query = new("");
+        private readonly State&lt;IReadOnlyList&lt;Project&gt;&gt; _visible = new(Array.Empty&lt;Project&gt;());
+        private readonly State&lt;IReadOnlyList&lt;WidgetKey&gt;&gt; _selected = new(Array.Empty&lt;WidgetKey&gt;());
+        private readonly State&lt;string&gt; _order = new("Ascending");
+        private readonly ListViewController _scroll = new();
+        private bool _descending;
+        private int _nextId = 2001;
+
+        protected override void InitState() {
+            for (var id = 1; id &lt;= 2000; id++) _all.Add(new Project(id));
+            Refresh();
+        }
+
+        public override Widget Build(BuildContext context) =&gt; SizedBox.Expand(new Padding(
+            new Column(new Widget[] {
+                new Text("Projects", context.Theme!.Typography.Title),
+                new TextField(_query, label: "Search", onChanged: _ =&gt; Refresh()),
+                new Row(new Widget[] {
+                    new Button("Reverse order", ReverseOrder),
+                    new Button("Clear search", ClearSearch)
+                }, gap: 8f),
+                new Row(new Widget[] {
+                    new Button("Add project", AddProject),
+                    new Button("Delete selected", DeleteSelected)
+                }, gap: 8f),
+                new ReactiveBuilder&lt;string&gt;(_order, value =&gt; new Text(value)),
+                new ReactiveBuilder&lt;IReadOnlyList&lt;Project&gt;&gt;(_visible, rows =&gt; new Text(
+                    rows.Count == 0 ? "No matches. Clear the search." : $"Matches: {rows.Count}")),
+                new ReactiveBuilder&lt;IReadOnlyList&lt;WidgetKey&gt;&gt;(_selected, keys =&gt; new Text(
+                    keys.Count == 0 ? "Selected: none" : $"Selected: {keys[0].Value}")),
+                new Expanded(new ListView&lt;Project&gt;(_visible,
+                    project =&gt; new Padding(new Text(project.Name), EdgeInsets.All(8f)),
+                    itemHeight: 44f,
+                    itemKey: KeyOf,
+                    selectionMode: ListSelectionMode.Single,
+                    selectedKeys: _selected,
+                    controller: _scroll))
+            }, gap: 12f), EdgeInsets.All(24f)));
+
+        private void Refresh() {
+            var term = _query.Value.Trim();
+            var matches = _all.Where(p =&gt; p.Name.IndexOf(term, StringComparison.OrdinalIgnoreCase) &gt;= 0);
+            _visible.Value = (_descending ? matches.OrderByDescending(p =&gt; p.Id) : matches.OrderBy(p =&gt; p.Id)).ToArray();
+            _scroll.JumpTo(0f);
+        }
+
+        private void ReverseOrder() {
+            _descending = !_descending;
+            _order.Value = _descending ? "Descending" : "Ascending";
+            Refresh();
+        }
+
+        private void ClearSearch() {
+            _query.Value = "";
+            Refresh(); // Programmatic assignment does not replay TextField.onChanged.
+        }
+
+        private void AddProject() {
+            _all.Add(new Project(_nextId++));
+            Refresh();
+        }
+
+        private void DeleteSelected() {
+            var keys = new HashSet&lt;WidgetKey&gt;(_selected.Value);
+            _all.RemoveAll(p =&gt; keys.Contains(KeyOf(p)));
+            _selected.Value = Array.Empty&lt;WidgetKey&gt;();
+            Refresh();
+        }
+
+        private static WidgetKey KeyOf(Project project) =&gt; new($"project:{project.Id}");
+
+        private sealed class Project {
+            public Project(int id) { Id = id; Name = $"Project {id:D4}"; }
+            public int Id { get; }
+            public string Name { get; }
+        }
+    }
+}</code></pre></div><p><a href="assets/examples/next-steps/ProjectListDemo.cs" download>Скачать ProjectListDemo.cs</a></p><h3>Что проверить руками</h3><ol><li>Сначала видны Matches: 2000 и первые проекты. Прокрутите вниз: список не должен увеличивать высоту всей страницы.</li><li>Нажмите строку Project 0001. Над списком появится Selected: project:1.</li><li>Нажмите Reverse order: порядок изменится, но выбранным останется тот же ID, не строка на прежнем индексе.</li><li>Введите в Search «2000» — останется один результат. Введите «zzz» — появится подсказка No matches. Clear the search.</li><li>Нажмите Clear search: вернутся все строки. Программное изменение _query не запускает onChanged, поэтому этот обработчик сам вызывает Refresh.</li><li>При пустом поиске нажмите Add project: появится Matches: 2001. Выберите строку и нажмите Delete selected — удалится именно выбранный проект, а выбор очистится.</li></ol><h3>Данные, представление и выбор — три разные вещи</h3><div class="guide-table-wrap"><table class="guide-table"><caption>Владельцы данных списка</caption><thead><tr><th>Поле</th><th>Зачем оно</th></tr></thead><tbody><tr><td>_all</td><td>Полный набор моделей. Это обычный List, не реактивная коллекция.</td></tr><tr><td>_visible</td><td>Новый снимок отфильтрованных и отсортированных моделей, который наблюдает ListView.</td></tr><tr><td>_selected</td><td>ID выбранной модели в виде WidgetKey, не индекс и не ссылка на нативную строку.</td></tr><tr><td>_scroll</td><td>Долгоживущий контроллер прокрутки одного списка.</td></tr></tbody></table></div><p>Refresh создаёт новый массив через ToArray и присваивает его в State. Одного _all.Add(...) недостаточно: State не замечает внутреннюю мутацию обычного списка. Не пытайтесь «починить» это повторным Mount или передачей прежнего экземпляра коллекции в State.</p><h3>Что реально экономит виртуализация</h3><p>ListView не создаёт 2000 смонтированных строк сразу: UI Toolkit переиспользует видимые строки и небольшой запас. Но все 2000 моделей и снимок всё ещё находятся в памяти, поиск и сортировка всё ещё обрабатывают данные. Это не серверная пагинация и не обещание постоянной стоимости обновления.</p><p>В примере фиксированная высота строки 44 UI-единицы. Внутри — короткий однострочный текст с отступом 8. Если добавите длинное описание, крупный масштаб текста или многострочную карточку, уберите itemHeight и используйте dynamic-height режим. Нельзя обещать строке 44, а рисовать внутри карточку высотой 100.</p><div class="docs-callout"><strong>Key — идентичность, не хранилище.</strong><p>itemKey связывает модель и реализованную строку при обновлении. Ключ должен быть уникальным и стабильным: ID подходит, индекс, имя проекта и новый Guid на каждый Build — нет. Но строку могут убрать при виртуализации; важный черновик, флажок или прогресс храните вне строки по ID, а не рассчитывайте только на WidgetState.</p></div><h3>Почему выбор остаётся, хотя строка скрылась поиском</h3><p>В этом примере фильтр намеренно не очищает _selected: выбранный ID может временно не присутствовать в результатах. После Clear search выбор снова станет виден. Delete selected удаляет выбранную модель даже если фильтр её скрывает. Это <em>политика приложения</em>; если нужно выбирать только среди результатов, явно очищайте отсутствующие ключи при Refresh.</p><h3>Прокрутка и ограниченная высота</h3><p>ListView уже содержит свою прокрутку. Не помещайте его в дополнительный вертикальный ScrollView. Здесь Scaffold даёт высоту экрану, SizedBox.Expand заполняет область, Column оставляет место заголовкам, Expanded отдаёт остаток списку. <a href="reference-ru.html#responsive-demo">Подробный разбор размеров и Expanded</a>.</p><p>Refresh намеренно возвращает прокрутку к началу через JumpTo(0). Если продукт должен сохранять позицию, уберите этот сброс и продумайте поведение при изменении фильтра. Для перехода к конкретному проекту используйте ScrollTo с его ключом: метод вернёт false, если ключ отсутствует в текущих результатах или controller не подключён.</p><h3>Частые ошибки</h3><ul><li><strong>Обновили List, но экран не изменился:</strong> нужен новый снимок в State.</li><li><strong>После сортировки выбран другой проект:</strong> храните ID/ключ, не selectedIndex.</li><li><strong>Список пустой или высотой в одну строку:</strong> проверьте конечную высоту viewport и Expanded, не увеличивайте itemHeight вслепую.</li><li><strong>После скролла пропадает ввод в строке:</strong> перенесите важные данные в владельца по ID.</li><li><strong>Поиск тормозит на больших данных:</strong> виртуализация не ускоряет фильтрацию. Для большого каталога добавьте задержку ввода, индексацию или серверный поиск, а устаревшие ответы отменяйте.</li></ul><p>Builder строки вызывается повторно при переиспользовании. Он должен создавать описание UI; не запускайте в нём загрузку с сервера, воспроизведение звука или создание долгоживущих контроллеров.</p><p><a href="overlays-ru.html#navigation-demo">Следующий шаг: открывать детали выбранного проекта и возвращаться назад</a>.</p></section><p class="docs-callout">Выше — полный запускаемый пример. Далее — справочные фрагменты API; ProjectRow и другие имена экранов/моделей обозначают ваш код, не встроенные классы пакета.</p>
 <section id="choose"><h2>Column для малого набора. ListView для растущего.</h2><div class="docs-grid"><div><span>Column + ScrollView</span><h3>Маленький статичный список</h3><p>Все дети монтируются сразу. Подходит для настроек или нескольких карточек.</p></div><div><span>ListView&lt;T&gt;</span><h3>Большая коллекция</h3><p>Монтируются только нужные строки; переиспользование выполняет нативный ListView.</p></div></div></section>
 <section id="basic"><h2>Начните с типизированного builder строки.</h2><p>Для строк одинаковой высоты укажите <code>itemHeight</code>. Если высота зависит от содержимого, не передавайте её — будет использована dynamic-height виртуализация.</p><div class="docs-code"><div><span>ProjectsList.cs</span></div><pre><code><span class="token-keyword">new</span> ListView&lt;Project&gt;(
   projects,
   project =&gt; <span class="token-keyword">new</span> ProjectRow(project),
   itemHeight: <span class="token-number">56f</span>);</code></pre></div></section>
-<section id="identity"><h2>Добавляйте Key строкам с состоянием.</h2><p>Если строка владеет фокусом, подписками или локальным State, дайте ей уникальный стабильный ключ. При вставке и сортировке ключ позволяет перенести совместимую строку за тем же объектом данных.</p><div class="docs-code"><div><span>ProjectsList.cs</span></div><pre><code><span class="token-keyword">new</span> ListView&lt;Project&gt;(
+<section id="identity"><h2>Добавляйте Key строкам с состоянием.</h2><p>У каждой модели должен быть уникальный стабильный ключ. При вставке и сортировке он связывает совместимую реализованную строку с тем же объектом данных. Это не гарантирует сохранение WidgetState после удаления строки виртуализацией; важные значения храните у внешнего владельца по ID.</p><div class="docs-code"><div><span>ProjectsList.cs</span></div><pre><code><span class="token-keyword">new</span> ListView&lt;Project&gt;(
   projects,
   project =&gt; <span class="token-keyword">new</span> ProjectRow(project),
   itemHeight: <span class="token-number">56f</span>,

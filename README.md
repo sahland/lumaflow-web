@@ -17,6 +17,10 @@ The controls guide includes `ProjectFormDemo.cs`: draft versus saved state,
 mounted-field validation, Enter submission, silent programmatic updates, and
 restoring the last confirmed values. Its "save" is in-memory, not disk/network persistence.
 
+The lists guide includes `ProjectListDemo.cs`: 2000 local items, keyed selection,
+search/sort, immutable visible snapshots, add/delete, and a bounded virtualized viewport.
+Filtering retains hidden selections by design; Refresh intentionally resets scroll position.
+
 Run `python scripts/check-tutorials.py` before publishing. It checks local links,
 anchors, copy buttons and exact parity between the RU/EN inline C# and downloads.
 When editing a C# example, update both tutorial snippets as well. Compilation
