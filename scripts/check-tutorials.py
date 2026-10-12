@@ -41,7 +41,7 @@ class Page(HTMLParser):
 def main():
     checks = 0
     names = ["FirstScreen", "AppDependencies", "AppTheme", "CounterPage", "AppRoot", "AppBootstrap"]
-    for name in ["tutorial-ru.html", "tutorial.html", "docs-ru.html", "docs.html", "architecture-ru.html", "architecture.html"]:
+    for name in ["tutorial-ru.html", "tutorial.html", "docs-ru.html", "docs.html", "architecture-ru.html", "architecture.html", "reference-ru.html", "reference.html", "overlays-ru.html", "overlays.html"]:
         page = Page(ROOT / name)
         for raw in page.links:
             url = urlsplit(raw)
@@ -55,13 +55,22 @@ def main():
         for copy in page.copies:
             assert copy in page.ids, f"{name}: missing copy target {copy}"
             checks += 1
+        examples, folder = [], "next-steps"
         if name.startswith("tutorial"):
-            assert set(page.snippets) == {f"code-{x}" for x in names}, f"{name}: incomplete examples"
-            for example in names:
-                source = (ROOT / f"assets/examples/first-app/{example}.cs").read_text(encoding="utf-8").strip()
+            examples, folder = names, "first-app"
+        elif name.startswith("architecture"):
+            examples = ["LocalCounter"]
+        elif name.startswith("reference"):
+            examples = ["ResponsiveDashboard"]
+        elif name.startswith("overlays"):
+            examples = ["NavigationDemo"]
+        if examples:
+            assert set(page.snippets) == {f"code-{x}" for x in examples}, f"{name}: incomplete examples"
+            for example in examples:
+                source = (ROOT / f"assets/examples/{folder}/{example}.cs").read_text(encoding="utf-8").strip()
                 assert page.snippets[f"code-{example}"].strip() == source, f"{name}: snippet differs from {example}.cs"
                 checks += 1
-    print(f"Tutorial validation PASSED: {checks} checks; links, anchors, copy targets, six complete RU/EN examples")
+    print(f"Tutorial validation PASSED: {checks} checks; links, anchors, copy targets, nine complete RU/EN examples")
 
 
 if __name__ == "__main__":

@@ -8,6 +8,11 @@ The six complete downloadable C# files live in `assets/examples/first-app/`.
 These are documentation examples, **not additions to the LumaFlow package**.
 Only FirstScreen or AppBootstrap should be attached to the scene, never both.
 
+`assets/examples/next-steps/` contains three follow-up widgets: local WidgetState,
+responsive bounded scrolling, and a two-route flow that retains the first page's
+state. The architecture, reference and overlays guides explain how to plug each
+example into the first tutorial's AppRoot. NavigationDemo also needs LocalCounter.
+
 Run `python scripts/check-tutorials.py` before publishing. It checks local links,
 anchors, copy buttons and exact parity between the RU/EN inline C# and downloads.
 When editing a C# example, update both tutorial snippets as well. Compilation

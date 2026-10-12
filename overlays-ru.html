@@ -1,7 +1,54 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Навигация, диалоги и оверлеи в LumaFlow."><title>Навигация и оверлеи в LumaFlow</title><link rel="icon" href="assets/lumaflow.png"><link rel="stylesheet" href="styles/main.css"><link rel="stylesheet" href="styles/brand.css?v=20260829"></head><body class="docs-page">
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Навигация, диалоги и оверлеи в LumaFlow."><title>Навигация и оверлеи в LumaFlow</title><link rel="icon" href="assets/lumaflow.png"><link rel="stylesheet" href="styles/main.css"><link rel="stylesheet" href="styles/brand.css?v=20260829"><link rel="stylesheet" href="styles/guide.css?v=20261012"></head><body class="docs-page">
 <a class="skip-link" href="#content">Перейти к содержанию</a><header class="site-header" data-header><div class="shell nav-wrap"><a class="brand" href="ru.html"><img src="assets/lumaflow.png" alt="" width="32" height="32"><span>LumaFlow</span></a><button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="visually-hidden">Открыть навигацию</span><span></span><span></span></button><nav id="site-nav" class="site-nav"><a href="docs-ru.html">Документация</a><a href="lists-ru.html">Списки</a><a href="overlays-ru.html" aria-current="page">Навигация</a><a href="overlays.html" lang="en">EN</a></nav></div></header>
 <main id="content"><section class="docs-hero"><div class="shell docs-hero-inner"><div><p class="eyebrow"><span></span><span>Руководство / Навигация</span></p><h1>Маршруты и временный UI должны иметь явного владельца.</h1><p class="lede"><code>Navigator</code> хранит историю экранов. <code>OverlayController</code> управляет диалогами, drawer, popover и toast поверх содержимого.</p></div><aside class="locale-card"><p>Главное правило</p><strong>Создавайте controller вне Build</strong><small>Один controller подключается к одному соответствующему host.</small></aside></div></section>
-<section class="docs-layout shell"><aside class="docs-sidebar"><p>В руководстве</p><nav><a href="#choose">Navigator или Overlay</a><a href="#host">Создание host</a><a href="#routes">Push и Replace</a><a href="#modal">Модальный диалог</a><a href="#back">Back и Escape</a><a href="#lifecycle">Жизненный цикл</a></nav><a class="sidebar-github" href="docs-ru.html">Вся документация →</a></aside><article class="docs-content">
+<section class="docs-layout shell"><aside class="docs-sidebar"><p>В руководстве</p><nav><a href="#navigation-demo">Два экрана: полный пример</a><a href="#choose">Navigator или Overlay</a><a href="#host">Создание host</a><a href="#routes">Push и Replace</a><a href="#modal">Модальный диалог</a><a href="#back">Back и Escape</a><a href="#lifecycle">Жизненный цикл</a></nav><a class="sidebar-github" href="docs-ru.html">Вся документация →</a></aside><article class="docs-content">
+<section id="navigation-demo"><h2>Рабочий маршрут: список → детали → назад.</h2><p>Добавьте <a href="assets/examples/next-steps/LocalCounter.cs" download>LocalCounter.cs</a> из <a href="architecture-ru.html#state-choice">урока о локальном состоянии</a> и файл ниже. В AppRoot импортируйте <code>LumaFlowDocs.NextSteps</code> и замените CounterPage на <code>new NavigationDemo()</code> внутри Scaffold. Bootstrap, Theme и Mount не меняются.</p><div class="docs-code"><div><span>NavigationDemo.cs · полный файл</span><button class="copy-code" type="button" data-copy-source="code-NavigationDemo">Копировать</button></div><pre id="code-NavigationDemo" tabindex="0"><code>#nullable enable
+using System;
+using LumaFlow;
+
+namespace LumaFlowDocs.NextSteps {
+    public sealed class NavigationDemo : StatefulWidget&lt;NavigationDemoState&gt; { }
+
+    public sealed class NavigationDemoState : WidgetState {
+        private Navigator _navigator = null!;
+        private readonly OverlayController _overlay = new();
+
+        protected override void InitState() {
+            _navigator = new Navigator(new HomePage(OpenDetails));
+        }
+
+        private void OpenDetails() =&gt; _navigator.Push(new Route(
+            new WidgetKey("project-1"),
+            new DetailsPage(() =&gt; { _navigator.Pop(); }),
+            RouteTransition.Fade(TimeSpan.FromMilliseconds(180))));
+
+        public override Widget Build(BuildContext context) =&gt; new BackNavigation(
+            new OverlayHost(new NavigatorHost(_navigator), _overlay),
+            _navigator, _overlay);
+
+        private sealed class HomePage : StatelessWidget {
+            private readonly Action _open;
+            public HomePage(Action open) =&gt; _open = open;
+            public override Widget Build(BuildContext context) =&gt; new Padding(
+                new Column(new Widget[] {
+                    new Text("Project list"),
+                    new LocalCounter(),
+                    new Button("Open project 1", _open)
+                }, gap: 16f), EdgeInsets.All(24f));
+        }
+
+        private sealed class DetailsPage : StatelessWidget {
+            private readonly Action _back;
+            public DetailsPage(Action back) =&gt; _back = back;
+            public override Widget Build(BuildContext context) =&gt; new Padding(
+                new Column(new Widget[] {
+                    new Text("Project 1 details"),
+                    new Button("Back to projects", _back)
+                }, gap: 16f), EdgeInsets.All(24f));
+        }
+    }
+}</code></pre></div><p><a href="assets/examples/next-steps/NavigationDemo.cs" download>Скачать NavigationDemo.cs</a></p><h3>Что проверить</h3><ol><li>На Project list трижды нажмите Increment local count.</li><li>Нажмите Open project 1 — появится Project 1 details.</li><li>Нажмите Back to projects — вернётся список с Local count: 3.</li><li>Повторите переход: в истории должны быть список и текущие детали, не копии главной страницы.</li></ol><p><strong>Почему число сохранилось:</strong> Push оставляет предыдущий маршрут смонтированным, но неактивным. Pop удаляет детали и возвращает прежний экран. Replace не сохраняет удалённую ветку и её WidgetState.</p><p><strong>Зачем InitState:</strong> Navigator создаётся один раз для смонтированного NavigationDemo. Создание в Build сбрасывало бы историю при перестроениях. WidgetState владеет контроллерами; hosts подключаются к ним и освобождают своё дерево при unmount. Сам Navigator не имеет Dispose.</p><p><strong>Зачем пустой OverlayController:</strong> диалогов пока нет, но BackNavigation принимает оба контроллера и сначала проверяет верхний overlay. Поэтому показаны согласованные NavigatorHost, OverlayHost и BackNavigation. Явная кнопка назад работает через Pop; автоматический Escape требует фокуса внутри этого UI.</p><div class="docs-callout"><strong>Push — не переключатель вкладок меню.</strong><p>Push при каждом тапе бесконтрольно увеличивает историю. Для разделов без истории можно хранить выбранный раздел в State, для замены маршрута — использовать Replace.</p></div><p>project-1 — ключ конкретного маршрута, уникальный среди одновременно открытых маршрутов. Повторный Push того же ключа без Pop недопустим. NavigationSnapshot хранит историю в памяти, не восстанавливает её автоматически после закрытия APK.</p></section><p class="docs-callout"><strong>Полный пример — выше; далее справочные фрагменты.</strong> Короткие блоки ниже показывают отдельные API и не являются готовыми файлами. Имена вроде DashboardPage, ProjectDetails или Location обозначают ваши экраны и модели, а не встроенные типы LumaFlow.</p>
+
 <section id="choose"><h2>Переход между экранами и временный слой — разные задачи.</h2><div class="docs-grid"><div><span>Navigator</span><h3>Экран приложения</h3><p>Маршрут участвует в истории. Back возвращает предыдущий экран вместе с его локальным состоянием.</p></div><div><span>OverlayController</span><h3>Временный интерфейс</h3><p>Диалог, меню, toast или drawer показываются над текущим маршрутом и закрываются независимо.</p></div></div></section>
 <section id="host"><h2>Создайте области один раз.</h2><p>Controller хранит изменяемый стек, поэтому он должен принадлежать приложению или StatefulWidget. Host только отображает состояние своего controller.</p><div class="docs-code"><div><span>ApplicationFlow.cs</span></div><pre><code><span class="token-keyword">private readonly</span> Navigator _navigator =
   <span class="token-keyword">new</span>(<span class="token-keyword">new</span> DashboardPage());

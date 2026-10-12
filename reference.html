@@ -10,14 +10,45 @@
     <link rel="icon" href="assets/lumaflow.png" type="image/png" />
     <link rel="stylesheet" href="styles/main.css" />
     <link rel="stylesheet" href="styles/brand.css?v=20260829" />
-  </head>
+  <link rel="stylesheet" href="styles/guide.css?v=20261012"></head>
   <body class="docs-page">
     <a class="skip-link" href="#content">Skip to content</a>
     <header class="site-header" data-header><div class="shell nav-wrap"><a class="brand" href="index.html" aria-label="LumaFlow home"><img src="assets/lumaflow.png" alt="" width="32" height="32" /><span>LumaFlow</span></a><button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="visually-hidden">Open navigation</span><span></span><span></span></button><nav id="site-nav" class="site-nav" aria-label="Primary navigation"><a href="index.html#overview">Overview</a><a href="docs.html">Guides</a><a href="reference.html" aria-current="page">API reference</a><a class="nav-cta" href="https://github.com/sahland/lumaflow" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></nav></div></header>
     <main id="content">
       <section class="docs-hero"><div class="shell docs-hero-inner"><div><p class="eyebrow"><span></span><span>Reference / Preview API</span></p><h1>Find the surface. Keep the model.</h1><p class="lede">A concise map of the public LumaFlow API. Use the guides for decisions and lifecycle patterns; use this page to find the type that owns a capability.</p></div><aside class="locale-card"><p>API status</p><strong>Preview</strong><small>Public APIs are stabilizing. Check the package changelog before upgrading production projects.</small></aside></div></section>
-      <section class="docs-layout shell"><aside class="docs-sidebar"><p>Reference</p><nav aria-label="Reference sections"><a href="#runtime">Runtime and state</a><a href="#layout">Layout</a><a href="#controls">Controls and forms</a><a href="#navigation">Navigation and overlays</a><a href="#platform">Platform services</a><a href="#editor">Editor tooling</a></nav><a class="sidebar-github" href="docs.html">Read the guides →</a></aside>
+      <section class="docs-layout shell"><aside class="docs-sidebar"><p>Reference</p><nav aria-label="Reference sections"><a href="#responsive-demo">Complete responsive screen</a><a href="#runtime">Runtime and state</a><a href="#layout">Layout</a><a href="#controls">Controls and forms</a><a href="#navigation">Navigation and overlays</a><a href="#platform">Platform services</a><a href="#editor">Editor tooling</a></nav><a class="sidebar-github" href="docs.html">Read the guides →</a></aside>
         <article class="docs-content">
+<section id="responsive-demo"><h2>Practice: a sidebar, fixed heading and scrollable list.</h2><p>Start with the <a href="tutorial.html">working Bootstrap and AppRoot</a>. Add this file and <code>using LumaFlowDocs.NextSteps;</code> to AppRoot. Replace CounterPage with <code>new ResponsiveDashboard()</code> inside its existing Scaffold. Do not add another Mount.</p><div class="docs-code"><div><span>ResponsiveDashboard.cs · complete file</span><button class="copy-code" type="button" data-copy-source="code-ResponsiveDashboard">Copy</button></div><pre id="code-ResponsiveDashboard" tabindex="0"><code>using LumaFlow;
+
+namespace LumaFlowDocs.NextSteps {
+    public sealed class ResponsiveDashboard : StatelessWidget {
+        public override Widget Build(BuildContext context) =&gt; SizedBox.Expand(
+            new LayoutBuilder((_, constraints) =&gt; {
+                var narrow = constraints.MaxWidth &lt; 720f;
+                Widget content = narrow
+                    ? new Column(new Widget[] {
+                        new Text("Navigation: Projects"),
+                        new Expanded(BuildProjects())
+                    }, gap: 16f)
+                    : new Row(new Widget[] {
+                        new SizedBox(new Text("Navigation: Projects"), width: 180f),
+                        new Expanded(BuildProjects())
+                    }, gap: 24f);
+                return SizedBox.Expand(new Padding(content, EdgeInsets.All(24f)));
+            }));
+
+        private static Widget BuildProjects() {
+            var rows = new Widget[40];
+            for (var i = 0; i &lt; rows.Length; i++)
+                rows[i] = new SizedBox(new Text($"Project {i + 1}"), height: 36f);
+            return SizedBox.Expand(new Column(new Widget[] {
+                new Text("Projects — this heading stays visible"),
+                new Expanded(new ScrollView(new Column(rows, gap: 8f)))
+            }, gap: 16f));
+        }
+    }
+}</code></pre></div><p><a href="assets/examples/next-steps/ResponsiveDashboard.cs" download>Download ResponsiveDashboard.cs</a></p><h3>How space is allocated</h3><ol><li>Scaffold supplies a finite screen height. SizedBox.Expand carries the fill requirement through composed wrappers.</li><li>LayoutBuilder reads <em>its branch's</em> width, not Screen.width. Below 720 UI units navigation moves above content; otherwise it occupies 180 units on the left.</li><li>Expanded takes remaining width in the wide Row, or remaining height below navigation in the narrow Column.</li><li>The inner Column leaves its heading outside ScrollView. Expanded gives scrolling finite height; only rows scroll.</li></ol><p><strong>Check:</strong> compare Game at 1100×720 and 540×720. Scroll to Project 40. The heading stays visible and the page does not grow to contain all rows.</p><div class="docs-callout"><strong>UI units are not always physical pixels.</strong><p>Panel Settings Scale = 1 makes comparison simple. LayoutBuilder reports available UI space at other scales too. Choose a content breakpoint, not a phone model.</p></div><h3>Three common failures</h3><ul><li><strong>Expanded inside scroll content:</strong> no finite remaining height exists along the scrolling axis. Bound the viewport, not content.</li><li><strong>A wrapper separates Expanded from Row/Column:</strong> use <code>Expanded(Padding(child, ...))</code>, not <code>Padding(Expanded(child), ...)</code>.</li><li><strong>ScrollView has no finite height:</strong> trace the chain from Scaffold to the viewport; check SizedBox.Expand and Expanded placement.</li></ul><p>ScrollView creates all 40 teaching rows at once. For thousands of records, use <a href="lists.html">virtualized ListView&lt;T&gt;</a>.</p></section><p class="docs-callout"><strong>The complete example is above; the following blocks are reference fragments.</strong> Short snippets below illustrate individual APIs, not complete files. Names such as DashboardPage, ProjectDetails and Location stand for application pages/models, not built-in LumaFlow types.</p>
+
           <section id="runtime"><h2>Mounting, widgets and inherited context.</h2><p>The application owns the external <code>UIDocument</code> root; LumaFlow owns a single host below it. The returned handle is the lifecycle boundary.</p><div class="reference-table"><div><strong>Type</strong><strong>Use it for</strong></div><div><code>LumaFlow.Mount</code><span>Create one mounted widget tree.</span></div><div><code>MountHandle</code><span>Dispose, rebuild, restart and capture diagnostics.</span></div><div><code>Widget / WidgetKey</code><span>Immutable descriptions and stable sibling identity.</span></div><div><code>State&lt;T&gt; / ReactiveBuilder&lt;T&gt;</code><span>Explicit state and a local reactive boundary.</span></div><div><code>Theme / MediaQuery / Localizations</code><span>Inherited application configuration.</span></div></div></section>
           <section id="layout"><h2>Typed building blocks over the native flex model.</h2><p><code>Row</code>, <code>Column</code>, <code>Expanded</code>, <code>Flexible</code> and <code>Spacer</code> express flex composition. Use <code>LayoutBuilder</code> at a responsive boundary; use <code>ScrollView</code> and <code>ListView&lt;T&gt;</code> for scrolling content.</p><div class="docs-callout"><strong>Constraint rule</strong><p>Flex children need bounded room on their main axis. A scroll view intentionally leaves one axis unbounded, so combine the two only with a clear constraint boundary.</p></div></section>
           <section id="controls"><h2>Controls, form state and product-level themes.</h2><p>Use <code>Button</code>, <code>IconButton</code>, <code>Pressable</code>, <code>TextField</code>, <code>Checkbox</code>, <code>Radio&lt;T&gt;</code>, <code>Switch</code>, <code>Slider</code> and <code>Dropdown&lt;T&gt;</code> for interaction. <code>Form</code>, <code>FormState</code> and <code>FormField&lt;T&gt;</code> make validation explicit.</p><p><code>ThemeData</code> supplies component defaults. An explicit style overrides only the fields it provides; it does not discard the rest of the active theme.</p></section>
