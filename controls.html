@@ -1,4 +1,68 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><meta name="description" content="Controlled inputs, forms and themes in LumaFlow." /><meta name="theme-color" content="#F3F2EE" /><title>Controls and forms · LumaFlow</title><link rel="canonical" href="https://sahland.github.io/lumaflow-web/controls.html" /><link rel="icon" href="assets/lumaflow.png" type="image/png" /><link rel="stylesheet" href="styles/main.css" /><link rel="stylesheet" href="styles/brand.css?v=20260829" /></head><body class="docs-page"><a class="skip-link" href="#content">Skip to content</a><header class="site-header" data-header><div class="shell nav-wrap"><a class="brand" href="index.html"><img src="assets/lumaflow.png" alt="" width="32" height="32" /><span>LumaFlow</span></a><nav class="site-nav"><a href="docs.html">Guides</a><a href="controls.html" aria-current="page">Controls</a><a href="reference.html">API reference</a></nav></div></header><main id="content"><section class="docs-hero"><div class="shell docs-hero-inner"><div><p class="eyebrow"><span></span><span>Guide / Controls and forms</span></p><h1>Keep the value outside the control that edits it.</h1><p class="lede">LumaFlow inputs are controlled by explicit state. Native UI Toolkit handles focus, keyboard input and accessibility while your application owns the value.</p></div><aside class="locale-card"><p>Input rule</p><strong>State first</strong><small>Input commits the owned value before invoking its change callback.</small></aside></div></section><section class="docs-layout shell"><aside class="docs-sidebar"><p>In this guide</p><nav><a href="#controlled">Controlled inputs</a><a href="#forms">Validation</a><a href="#theme">Component themes</a></nav><a class="sidebar-github" href="docs.html">All guides →</a></aside><article class="docs-content"><section id="controlled"><h2>One state value, one source of truth.</h2><p>Programmatic changes refresh the control without replaying the user callback. This keeps validation and domain updates in one predictable direction.</p><div class="docs-code"><div><span>ProjectForm.cs</span></div><pre><code><span class="token-keyword">private readonly</span> State&lt;<span class="token-type">string</span>&gt; _name = <span class="token-keyword">new</span>(<span class="token-string">""</span>);
+<!doctype html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><meta name="description" content="Controlled inputs, forms and themes in LumaFlow." /><meta name="theme-color" content="#F3F2EE" /><title>Controls and forms · LumaFlow</title><link rel="canonical" href="https://sahland.github.io/lumaflow-web/controls.html" /><link rel="icon" href="assets/lumaflow.png" type="image/png" /><link rel="stylesheet" href="styles/main.css" /><link rel="stylesheet" href="styles/brand.css?v=20260829" /><link rel="stylesheet" href="styles/guide.css?v=20261012"></head><body class="docs-page"><a class="skip-link" href="#content">Skip to content</a><header class="site-header" data-header><div class="shell nav-wrap"><a class="brand" href="index.html"><img src="assets/lumaflow.png" alt="" width="32" height="32" /><span>LumaFlow</span></a><button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="visually-hidden">Open navigation</span><span></span><span></span></button><nav id="site-nav" class="site-nav"><a href="docs.html">Guides</a><a href="controls.html" aria-current="page">Controls</a><a href="reference.html">API reference</a></nav></div></header><main id="content"><section class="docs-hero"><div class="shell docs-hero-inner"><div><p class="eyebrow"><span></span><span>Guide / Controls and forms</span></p><h1>Keep the value outside the control that edits it.</h1><p class="lede">LumaFlow inputs are controlled by explicit state. Native UI Toolkit handles focus, keyboard input and accessibility while your application owns the value.</p></div><aside class="locale-card"><p>Input rule</p><strong>State first</strong><small>Input commits the owned value before invoking its change callback.</small></aside></div></section><section class="docs-layout shell"><aside class="docs-sidebar"><p>In this guide</p><nav><a href="#form-demo">Complete form</a><a href="#controlled">Controlled inputs</a><a href="#forms">Validation</a><a href="#theme">Component themes</a></nav><a class="sidebar-github" href="docs.html">All guides →</a></aside><article class="docs-content"><section id="form-demo"><h2>A complete form: edit → validate → save → cancel.</h2><p>Use AppRoot and the theme from the <a href="tutorial.html">first tutorial</a>. Add ProjectFormDemo.cs below and <code>using LumaFlowDocs.NextSteps;</code> to AppRoot. Replace CounterPage with <code>new ProjectFormDemo()</code> inside the existing Scaffold. Keep Bootstrap unchanged; this is not a GameObject component.</p><div class="docs-callout"><strong>“Save locally” saves only in this screen's memory.</strong><p>This example does not write files, make requests or send emails. The checkbox is a sample setting. Quitting or removing this branch discards saved values. A real persistence service is a separate concern.</p></div><div class="docs-code"><div><span>ProjectFormDemo.cs · complete file</span><button class="copy-code" type="button" data-copy-source="code-ProjectFormDemo">Copy</button></div><pre id="code-ProjectFormDemo" tabindex="0"><code>#nullable enable
+using LumaFlow;
+
+namespace LumaFlowDocs.NextSteps {
+    public sealed class ProjectFormDemo : StatefulWidget&lt;ProjectFormDemoState&gt; { }
+
+    public sealed class ProjectFormDemoState : WidgetState {
+        private readonly State&lt;string&gt; _name = new("");
+        private readonly State&lt;bool&gt; _updates = new(false);
+        private readonly State&lt;string&gt; _status = new("Not saved");
+        private readonly State&lt;int&gt; _userChanges = new(0);
+        private readonly FormState _form = new(FormValidationMode.OnSubmit);
+        private FormField&lt;string&gt; _nameField = null!;
+        private string _savedName = "";
+        private bool _savedUpdates;
+
+        protected override void InitState() {
+            _nameField = new FormField&lt;string&gt;(_name, value =&gt;
+                value.Trim().Length &gt;= 3 ? null : "Use at least 3 characters.");
+        }
+
+        public override Widget Build(BuildContext context) =&gt; new ScrollView(new Center(
+            ConstrainedBox.AtMost(new Padding(
+                new Form(_form, new Column(new Widget[] {
+                    new Text("Project settings", context.Theme!.Typography.Title),
+                    new TextField(_nameField, label: "Project name",
+                        placeholder: "Enter a name", onChanged: _ =&gt; UserEdited()),
+                    new Checkbox(_updates, label: "Email updates",
+                        onChanged: _ =&gt; UserEdited()),
+                    new Button("Save locally", () =&gt; { _form.Submit(SaveValidated); }),
+                    new Button("Load example", LoadExample),
+                    new Button("Restore saved", RestoreSaved),
+                    new ReactiveBuilder&lt;string&gt;(_status, value =&gt; new Text(value)),
+                    new ReactiveBuilder&lt;int&gt;(_userChanges,
+                        value =&gt; new Text($"User changes: {value}"))
+                }, gap: 16f), onSubmit: SaveValidated),
+                EdgeInsets.All(24f)), width: 520f)));
+
+        private void UserEdited() {
+            _userChanges.Value++;
+            _status.Value = "Unsaved changes";
+        }
+
+        // Form.Submit invokes this only after mounted fields pass validation.
+        private void SaveValidated() {
+            _savedName = _name.Value.Trim();
+            _savedUpdates = _updates.Value;
+            _status.Value = $"Saved locally: {_savedName}";
+        }
+
+        private void LoadExample() {
+            _name.Value = "Demo project";
+            _updates.Value = true;
+            _form.ClearValidation();
+            _status.Value = "Example loaded (not saved)";
+        }
+
+        private void RestoreSaved() {
+            _name.Value = _savedName;
+            _updates.Value = _savedUpdates;
+            _form.ClearValidation();
+            _status.Value = "Restored last saved values";
+        }
+    }
+}</code></pre></div><p><a href="assets/examples/next-steps/ProjectFormDemo.cs" download>Download ProjectFormDemo.cs</a></p><h3>Test the workflow</h3><ol><li>Press Save locally immediately. Expect Use at least 3 characters. and focus on the name field. Invalid values are not saved.</li><li>Enter “My project”, enable Email updates and press Save locally. User changes counts user actions; the status becomes Saved locally: My project.</li><li>Press Load example. The name becomes Demo project, the checkbox becomes checked and the status says the example is not saved. User changes does not increase: code assigned those values.</li><li>Press Restore saved. The last successfully saved name and checkbox return, not Demo project. Before the first save, this restores an empty name and unchecked box.</li><li>Enter a valid name and press Enter in the single-line input: it follows the same save path. In a multiline TextField, Enter inserts a line rather than submitting.</li></ol><h3>Why three different objects?</h3><div class="guide-table-wrap"><table class="guide-table"><caption>Value, field and form</caption><thead><tr><th>Object</th><th>Responsibility</th></tr></thead><tbody><tr><td>State&lt;string&gt; _name</td><td>The current draft edited by TextField.</td></tr><tr><td>FormField&lt;string&gt; _nameField</td><td>A reference to the same State, its validator and ErrorText; not another name value.</td></tr><tr><td>FormState _form + Form</td><td>Validation of mounted registered inputs, submission and first-invalid focus.</td></tr></tbody></table></div><p>FormField registers through its mounted TextField; constructing the objects alone is insufficient. The input must be inside Form. A validator returns an error string or null for success; do not perform network calls or mutate other state in it.</p><h3>Why do the button and Enter call different methods?</h3><p>The button calls <code>_form.Submit(SaveValidated)</code>: validate first, then act. In <code>Form(..., onSubmit: SaveValidated)</code>, Form already validates Enter submissions. SaveValidated neither validates again nor runs during Build.</p><p>OnSubmit reveals errors after a submission attempt. Use FormValidationMode.OnChange to validate with visible errors on value changes instead. FormState.IsValid tracks validity before submit, but does not imply error messages are already displayed.</p><h3>User callbacks versus code-driven changes</h3><p>TextField/Checkbox commit State before calling onChanged. Assigning <code>_name.Value = "Demo project"</code> refreshes the native control without replaying onChanged. Load example and Restore saved therefore set their own status explicitly. For logic that must run on <em>every</em> State change, Subscribe in an owner and dispose that subscription; do not treat onChanged as a universal loading callback.</p><h3>What does resetting a form mean?</h3><p>ClearValidation clears messages, not values or validity. RestoreSaved first restores both values, then clears errors. _savedName/_savedUpdates intentionally hold the last confirmed version, not a competing source of the current draft.</p><div class="docs-callout cool"><strong>Common mistakes</strong><p>Constructing FormField in Build loses stable ownership and messages. Submitting without Form, or with inputs outside its scope, cannot validate those missing inputs. Rebuild is not a data reset. Saving in onChanged runs on every user change, not only the Save button.</p></div><h3>When saving becomes asynchronous</h3><p>This example is synchronous. Networking needs a saving state, duplicate-submit prevention, failure handling and cancellation when the screen goes away. Do not show success before the server confirms. Apply background results on Unity's thread and do not update an unmounted branch. Inject network services instead of creating them in Build.</p><p><a href="accessibility.html">Next: keyboard support, accessibility and localization</a>.</p></section><p class="docs-callout">The complete runnable example is above. The following API snippets are fragments, not complete source files.</p><section id="controlled"><h2>One state value, one source of truth.</h2><p>Programmatic changes refresh the control without replaying the user callback. This keeps validation and domain updates in one predictable direction.</p><div class="docs-code"><div><span>ProjectForm.cs</span></div><pre><code><span class="token-keyword">private readonly</span> State&lt;<span class="token-type">string</span>&gt; _name = <span class="token-keyword">new</span>(<span class="token-string">""</span>);
 
 <span class="token-keyword">new</span> TextField(
   _name,

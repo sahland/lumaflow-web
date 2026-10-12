@@ -1,7 +1,71 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Управляемые контролы, формы, валидация и темы LumaFlow."><title>Контролы и формы в LumaFlow</title><link rel="icon" href="assets/lumaflow.png"><link rel="stylesheet" href="styles/main.css"><link rel="stylesheet" href="styles/brand.css?v=20260829"></head><body class="docs-page">
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Управляемые контролы, формы, валидация и темы LumaFlow."><title>Контролы и формы в LumaFlow</title><link rel="icon" href="assets/lumaflow.png"><link rel="stylesheet" href="styles/main.css"><link rel="stylesheet" href="styles/brand.css?v=20260829"><link rel="stylesheet" href="styles/guide.css?v=20261012"></head><body class="docs-page">
 <a class="skip-link" href="#content">Перейти к содержанию</a><header class="site-header" data-header><div class="shell nav-wrap"><a class="brand" href="ru.html"><img src="assets/lumaflow.png" alt="" width="32" height="32"><span>LumaFlow</span></a><button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="visually-hidden">Открыть навигацию</span><span></span><span></span></button><nav id="site-nav" class="site-nav"><a href="docs-ru.html">Документация</a><a href="overlays-ru.html">Навигация</a><a href="controls-ru.html" aria-current="page">Контролы</a><a href="accessibility-ru.html">Доступность</a><a href="controls.html" lang="en">EN</a></nav></div></header>
 <main id="content"><section class="docs-hero"><div class="shell docs-hero-inner"><div><p class="eyebrow"><span></span><span>Руководство / Контролы и формы</span></p><h1>Значение принадлежит приложению, а не полю ввода.</h1><p class="lede">Контролы LumaFlow управляются явным State. UI Toolkit сохраняет нативный фокус и клавиатурное поведение, а приложение остаётся единственным источником данных.</p></div><aside class="locale-card"><p>Поток данных</p><strong>State → Control → Callback</strong><small>Ввод сначала записывает значение, затем вызывает onChanged.</small></aside></div></section>
-<section class="docs-layout shell"><aside class="docs-sidebar"><p>В руководстве</p><nav><a href="#controlled">Управляемый ввод</a><a href="#callbacks">Callback без цикла</a><a href="#forms">Форма и валидация</a><a href="#focus">Фокус</a><a href="#theme">Темы и стили</a></nav><a class="sidebar-github" href="docs-ru.html">Вся документация →</a></aside><article class="docs-content">
+<section class="docs-layout shell"><aside class="docs-sidebar"><p>В руководстве</p><nav><a href="#form-demo">Форма целиком</a><a href="#controlled">Управляемый ввод</a><a href="#callbacks">Callback без цикла</a><a href="#forms">Форма и валидация</a><a href="#focus">Фокус</a><a href="#theme">Темы и стили</a></nav><a class="sidebar-github" href="docs-ru.html">Вся документация →</a></aside><article class="docs-content"><section id="form-demo"><h2>Полная форма: ввод → проверка → сохранение → отмена.</h2><p>Возьмите AppRoot и тему из <a href="tutorial-ru.html">первого урока</a>. Создайте ProjectFormDemo.cs ниже, добавьте <code>using LumaFlowDocs.NextSteps;</code> в AppRoot и замените CounterPage на <code>new ProjectFormDemo()</code> внутри существующего Scaffold. Bootstrap не меняйте; компонент на GameObject добавлять не нужно.</p><div class="docs-callout"><strong>«Save locally» здесь сохраняет только в памяти экрана.</strong><p>Пример не пишет файл, не отправляет запросы и не рассылает email. Checkbox — учебное значение настройки. Закрытие приложения или удаление этой ветки уничтожит сохранённые значения. Настоящее хранилище подключают отдельно.</p></div><div class="docs-code"><div><span>ProjectFormDemo.cs · полный файл</span><button class="copy-code" type="button" data-copy-source="code-ProjectFormDemo">Копировать</button></div><pre id="code-ProjectFormDemo" tabindex="0"><code>#nullable enable
+using LumaFlow;
+
+namespace LumaFlowDocs.NextSteps {
+    public sealed class ProjectFormDemo : StatefulWidget&lt;ProjectFormDemoState&gt; { }
+
+    public sealed class ProjectFormDemoState : WidgetState {
+        private readonly State&lt;string&gt; _name = new("");
+        private readonly State&lt;bool&gt; _updates = new(false);
+        private readonly State&lt;string&gt; _status = new("Not saved");
+        private readonly State&lt;int&gt; _userChanges = new(0);
+        private readonly FormState _form = new(FormValidationMode.OnSubmit);
+        private FormField&lt;string&gt; _nameField = null!;
+        private string _savedName = "";
+        private bool _savedUpdates;
+
+        protected override void InitState() {
+            _nameField = new FormField&lt;string&gt;(_name, value =&gt;
+                value.Trim().Length &gt;= 3 ? null : "Use at least 3 characters.");
+        }
+
+        public override Widget Build(BuildContext context) =&gt; new ScrollView(new Center(
+            ConstrainedBox.AtMost(new Padding(
+                new Form(_form, new Column(new Widget[] {
+                    new Text("Project settings", context.Theme!.Typography.Title),
+                    new TextField(_nameField, label: "Project name",
+                        placeholder: "Enter a name", onChanged: _ =&gt; UserEdited()),
+                    new Checkbox(_updates, label: "Email updates",
+                        onChanged: _ =&gt; UserEdited()),
+                    new Button("Save locally", () =&gt; { _form.Submit(SaveValidated); }),
+                    new Button("Load example", LoadExample),
+                    new Button("Restore saved", RestoreSaved),
+                    new ReactiveBuilder&lt;string&gt;(_status, value =&gt; new Text(value)),
+                    new ReactiveBuilder&lt;int&gt;(_userChanges,
+                        value =&gt; new Text($"User changes: {value}"))
+                }, gap: 16f), onSubmit: SaveValidated),
+                EdgeInsets.All(24f)), width: 520f)));
+
+        private void UserEdited() {
+            _userChanges.Value++;
+            _status.Value = "Unsaved changes";
+        }
+
+        // Form.Submit invokes this only after mounted fields pass validation.
+        private void SaveValidated() {
+            _savedName = _name.Value.Trim();
+            _savedUpdates = _updates.Value;
+            _status.Value = $"Saved locally: {_savedName}";
+        }
+
+        private void LoadExample() {
+            _name.Value = "Demo project";
+            _updates.Value = true;
+            _form.ClearValidation();
+            _status.Value = "Example loaded (not saved)";
+        }
+
+        private void RestoreSaved() {
+            _name.Value = _savedName;
+            _updates.Value = _savedUpdates;
+            _form.ClearValidation();
+            _status.Value = "Restored last saved values";
+        }
+    }
+}</code></pre></div><p><a href="assets/examples/next-steps/ProjectFormDemo.cs" download>Скачать ProjectFormDemo.cs</a></p><h3>Проверьте сценарий по шагам</h3><ol><li>Сразу нажмите Save locally. Появится ошибка Use at least 3 characters.; фокус перейдёт к имени. Некорректные данные не сохраняются.</li><li>Введите «Мой проект» и включите Email updates. Счётчик User changes растёт от действий пользователя. Нажмите Save locally — увидите Saved locally: Мой проект.</li><li>Нажмите Load example: поле станет Demo project, checkbox включится, статус сообщит, что пример ещё не сохранён. User changes не увеличится: значения записаны из кода.</li><li>Нажмите Restore saved: вернутся имя и checkbox последнего успешного сохранения, не Demo project. До первого сохранения восстановятся пустое имя и выключенный checkbox.</li><li>Введите новое корректное имя и нажмите Enter в однострочном поле. Форма выполнит то же сохранение. Для многострочного TextField Enter означает новую строку, а не submit.</li></ol><h3>Зачем три разных объекта</h3><div class="guide-table-wrap"><table class="guide-table"><caption>Значение, поле и форма</caption><thead><tr><th>Объект</th><th>За что отвечает</th></tr></thead><tbody><tr><td>State&lt;string&gt; _name</td><td>Текущий черновик. Его читает и изменяет TextField.</td></tr><tr><td>FormField&lt;string&gt; _nameField</td><td>Ссылка на тот же State, функция проверки и ErrorText. Это не вторая копия имени.</td></tr><tr><td>FormState _form + Form</td><td>Проверка всех зарегистрированных полей в этой ветке, submit и фокус на первой ошибке.</td></tr></tbody></table></div><p>FormField связывается с Form через смонтированный TextField: одного создания объектов недостаточно. Поле должно находиться внутри Form. Валидатор возвращает строку ошибки или null, если всё хорошо; не выполняйте в нём сеть и не изменяйте другие значения.</p><h3>Почему кнопка и Enter вызывают разные методы</h3><p>Обычная кнопка вызывает <code>_form.Submit(SaveValidated)</code>: сначала проверка, затем действие. В <code>Form(..., onSubmit: SaveValidated)</code> сама Form уже проводит проверку при Enter. Поэтому SaveValidated не проверяет форму повторно и не вызывается из Build.</p><p>OnSubmit показывает ошибки после попытки сохранения. Если нужно проверять сразу при изменении значения, выберите FormValidationMode.OnChange. FormState.IsValid отслеживает валидность и до submit, но её наличие не означает, что сообщения уже показаны.</p><h3>Пользовательский callback и программное изменение</h3><p>TextField/Checkbox сначала обновляют State, потом вызывают onChanged. Запись <code>_name.Value = "Demo project"</code> обновляет видимое поле без повторного onChanged. Поэтому Load example и Restore saved явно задают статус сами. Если действие должно выполняться при <em>любом</em> изменении State, используйте Subscribe у владельца и освободите подписку в Dispose; не превращайте onChanged в универсальный обработчик загрузки.</p><h3>Что означает «сбросить форму»</h3><p>ClearValidation убирает сообщения, но не меняет данные и не делает пустое имя корректным. RestoreSaved сначала возвращает оба значения, затем очищает ошибки. Сохранённая копия _savedName/_savedUpdates здесь намеренная: это последняя подтверждённая версия, а не конкурирующий источник текущего ввода.</p><div class="docs-callout cool"><strong>Частые ошибки</strong><p>Создание FormField в Build теряет стабильного владельца и ошибки. Submit без Form или с полями вне её области не проверит отсутствующие поля. Rebuild не является сбросом данных. Сохранение в onChanged запускается при каждом пользовательском изменении, а не только по кнопке Save.</p></div><h3>Если сохранение станет сетевым</h3><p>Этот пример синхронный. Для сети добавьте состояние «сохраняется», запрет повторной отправки, обработку ошибки и отмену операции при уходе с экрана. Не показывайте «сохранено» до ответа сервера. Результат фоновой операции применяйте в Unity-потоке и не обновляйте уже удалённую ветку. Сервисы сети лучше передавать через зависимости, а не создавать в Build.</p><p><a href="accessibility-ru.html">Дальше: клавиатура, доступность и локализация</a>.</p></section><p class="docs-callout">Выше — полный запускаемый пример. Далее — справочные фрагменты отдельных API; их нельзя копировать как готовые файлы.</p>
 <section id="controlled"><h2>Один State — один источник истины.</h2><p>Поле отображает текущее значение State. Ввод пользователя обновляет State. Изменение State из кода обновляет поле без имитации пользовательского события.</p><div class="docs-code"><div><span>ProjectForm.cs</span></div><pre><code><span class="token-keyword">private readonly</span> State&lt;<span class="token-type">string</span>&gt; _name = <span class="token-keyword">new</span>(<span class="token-string">""</span>);
 
 <span class="token-keyword">new</span> TextField(

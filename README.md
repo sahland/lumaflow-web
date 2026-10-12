@@ -13,6 +13,10 @@ responsive bounded scrolling, and a two-route flow that retains the first page's
 state. The architecture, reference and overlays guides explain how to plug each
 example into the first tutorial's AppRoot. NavigationDemo also needs LocalCounter.
 
+The controls guide includes `ProjectFormDemo.cs`: draft versus saved state,
+mounted-field validation, Enter submission, silent programmatic updates, and
+restoring the last confirmed values. Its "save" is in-memory, not disk/network persistence.
+
 Run `python scripts/check-tutorials.py` before publishing. It checks local links,
 anchors, copy buttons and exact parity between the RU/EN inline C# and downloads.
 When editing a C# example, update both tutorial snippets as well. Compilation
