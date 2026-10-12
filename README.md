@@ -1,5 +1,18 @@
 # LumaFlow publisher website
 
+## Beginner documentation
+
+`tutorial-ru.html` and `tutorial.html` contain the same two-stage learning path:
+one-file counter → a structured app with Bootstrap, Dependencies, Root, Theme and Page.
+The six complete downloadable C# files live in `assets/examples/first-app/`.
+These are documentation examples, **not additions to the LumaFlow package**.
+Only FirstScreen or AppBootstrap should be attached to the scene, never both.
+
+Run `python scripts/check-tutorials.py` before publishing. It checks local links,
+anchors, copy buttons and exact parity between the RU/EN inline C# and downloads.
+When editing a C# example, update both tutorial snippets as well. Compilation
+and device/runtime verification still require Unity and are not replaced by this check.
+
 This is a dependency-free static website for the LumaFlow Unity publisher profile. It is designed to be deployed from the root of this directory, so all asset paths are relative and work both for a project site (`https://OWNER.github.io/REPOSITORY/`) and a user/organization site (`https://OWNER.github.io/`).
 
 ## Deploy with GitHub Pages

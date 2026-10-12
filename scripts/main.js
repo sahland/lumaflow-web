@@ -83,7 +83,10 @@
   }
   document.querySelectorAll('.site-nav a').forEach(link => {
     const linkedPage = new URL(link.href, location.href).pathname.split('/').pop() || 'index.html';
-    if (!link.hash && linkedPage === currentPage) link.classList.add('is-current');
+    if (!link.hash && linkedPage === currentPage) {
+      link.classList.add('is-current');
+      link.setAttribute('aria-current', 'page');
+    }
   });
   nav?.addEventListener('click', event => {
     if (event.target.matches('a')) { nav.classList.remove('is-open'); toggle?.setAttribute('aria-expanded', 'false'); }

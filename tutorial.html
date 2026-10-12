@@ -1,61 +1,179 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Build a small reactive LumaFlow screen in Unity." />
-    <meta name="theme-color" content="#F3F2EE" />
-    <title>Build your first LumaFlow screen</title>
-    <link rel="canonical" href="https://sahland.github.io/lumaflow-web/tutorial.html" />
-    <link rel="icon" href="assets/lumaflow.png" type="image/png" />
-    <link rel="stylesheet" href="styles/main.css" />
-    <link rel="stylesheet" href="styles/brand.css?v=20260829" />
-  </head>
-  <body class="docs-page">
-    <a class="skip-link" href="#content">Skip to content</a>
-    <header class="site-header" data-header><div class="shell nav-wrap"><a class="brand" href="index.html" aria-label="LumaFlow home"><img src="assets/lumaflow.png" alt="" width="32" height="32" /><span>LumaFlow</span></a><button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="visually-hidden">Open navigation</span><span></span><span></span></button><nav id="site-nav" class="site-nav" aria-label="Primary navigation"><a href="docs.html">Guides</a><a href="tutorial.html" aria-current="page">Tutorial</a><a href="reference.html">API reference</a><a class="nav-cta" href="https://github.com/sahland/lumaflow" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></nav></div></header>
-    <main id="content">
-      <section class="docs-hero"><div class="shell docs-hero-inner"><div><p class="eyebrow"><span></span><span>Tutorial / 15 minutes</span></p><h1>Build a small screen that owns its own updates.</h1><p class="lede">Create a project counter mounted in a Unity <code>UIDocument</code>. You will mount the tree, keep mutable data in <code>State&lt;T&gt;</code>, and dispose the UI deterministically.</p></div><aside class="locale-card"><p>You will use</p><strong>Unity 6+</strong><small>A scene with a GameObject that has a <code>UIDocument</code> component and an assigned panel settings asset.</small></aside></div></section>
-      <section class="docs-layout shell"><aside class="docs-sidebar"><p>In this tutorial</p><nav aria-label="Tutorial steps"><a href="#scene">1. Prepare the scene</a><a href="#mount">2. Mount the root</a><a href="#state">3. Add state</a><a href="#cleanup">4. Release the mount</a><a href="#next">What to read next</a></nav><a class="sidebar-github" href="docs.html">All guides →</a></aside>
-        <article class="docs-content">
-          <section id="scene"><h2>Start with the UI Toolkit root you already own.</h2><p>Create a GameObject, add <code>UIDocument</code>, and assign Panel Settings as you would for any UI Toolkit screen. LumaFlow does not replace this integration point; it mounts below the document’s root element.</p><div class="docs-callout"><strong>Keep this boundary explicit.</strong><p>Your MonoBehaviour owns the <code>UIDocument</code> and the returned <code>MountHandle</code>. The framework owns only its child host and the tree under that host.</p></div></section>
-          <section id="mount"><h2>Mount once when the host becomes active.</h2><p>Create a component on the same GameObject. The first version can render a static screen; the lifecycle is already the production lifecycle.</p><div class="docs-code"><div><span>ProjectCounterScreen.cs</span><button class="copy-code" type="button" data-copy-source="tutorial-mount-code">Copy</button></div><pre id="tutorial-mount-code"><code><span class="token-keyword">using</span> LumaFlow;
-<span class="token-keyword">using</span> UnityEngine;
-<span class="token-keyword">using</span> UnityEngine.UIElements;
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="A beginner-friendly path from an empty Unity scene to a LumaFlow app: complete code, AppBootstrap, AppDependencies, AppRoot, AppTheme and troubleshooting.">
+<title>Your first LumaFlow app — step by step</title><link rel="icon" href="assets/lumaflow.png"><link rel="stylesheet" href="styles/main.css"><link rel="stylesheet" href="styles/brand.css?v=20260829"><link rel="stylesheet" href="styles/guide.css?v=20261012">
+</head><body class="docs-page">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="site-header" data-header><div class="shell nav-wrap"><a class="brand" href="index.html"><img src="assets/lumaflow.png" alt="" width="32" height="32"><span>LumaFlow</span></a><button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="visually-hidden">Open navigation</span><span></span><span></span></button><nav id="site-nav" class="site-nav" aria-label="Primary navigation"><a href="docs.html">Documentation</a><a href="tutorial.html" aria-current="page">Start</a><a href="architecture.html">Concepts</a><a href="tutorial-ru.html" lang="ru">RU</a></nav></div></header>
+<main id="content"><section class="docs-hero"><div class="shell docs-hero-inner"><div><p class="eyebrow"><span></span>Learning path / beginners</p><h1>From an empty scene to an app you understand.</h1><p class="lede">Start with a working counter. Then learn why startup, data, styling and layout have different owners — without adding architecture before you need it.</p></div><aside class="locale-card"><p>Two stages</p><strong>One file → a small app</strong><small>Unity 6+ · API 0.1.1 · 30–45 minutes. Copy or download every complete source file.</small></aside></div></section>
+<section class="docs-layout shell"><aside class="docs-sidebar"><p>Lesson steps</p><nav><a href="#route">Learning path</a><a href="#install">Install</a><a href="#scene">Unity scene</a><a href="#minimal">One file</a><a href="#mental-model">How it works</a><a href="#roles">Class roles</a><a href="#files">Five files</a><a href="#practice">Practice</a><a href="#troubleshooting">Troubleshooting</a><a href="#next">Next</a></nav><a class="sidebar-github" href="docs.html">All documentation →</a></aside><article class="docs-content"><section id="route"><h2>What we will build — and how many files you actually need</h2><p>Build a project counter: a heading, a number and an Add project button. A click updates the number without finding and changing native UI elements manually. Start with one file, then split the same app into five files and give it a shared theme.</p><div class="docs-callout"><strong>AppBootstrap, AppDependencies, AppRoot and AppTheme are not required LumaFlow types.</strong><p>These are names for classes <em>you write in your application</em>. You may rename them, combine them or leave them out. One MonoBehaviour is enough for your first screen. The structured example teaches responsibilities, not mandatory boilerplate.</p></div><p>You need Unity 6+, basic C# knowledge and Git for Git URL installation. These examples target LumaFlow 0.1.1; check your installed version in Package Manager. Every source file is complete, with no omitted services or hidden setup.</p></section>
+<section id="install"><h2>1. Install LumaFlow</h2><ol><li>Open <strong>Window → Package Management → Package Manager</strong> (Window → Package Manager in some Unity versions).</li><li>Choose <strong>+ → Install package from git URL</strong> / Add package from git URL.</li><li>Enter <code>https://github.com/sahland/lumaflow.git</code> and confirm.</li><li>Wait for import and compilation. Verify that LumaFlow appears in Package Manager and Console has no red errors.</li></ol><p>The UPM package name is <code>com.sahland.lumaflow</code>; its C# namespace is <code>LumaFlow</code>. Do not install a second copy if the package is already present. If Unity cannot find Git, install Git and restart the Editor. For a team project, pin a tested tag/commit in the Git URL rather than following a moving branch.</p><p><strong>Checkpoint:</strong> the package compiles. No UI is visible yet; that is expected.</p></section>
+<section id="scene"><h2>2. Give Unity somewhere to display the UI</h2><ol><li>Create and save an empty scene. In Hierarchy, create an empty GameObject named <code>App</code>.</li><li>Add a <strong>UI Document</strong> (<code>UIDocument</code>) component.</li><li>In Project, choose <strong>Create → UI Toolkit → Panel Settings Asset</strong> and name it <code>AppPanelSettings</code>.</li><li>Assign it to UI Document's <strong>Panel Settings</strong> field. For this lesson, use <strong>Scale Mode → Constant Pixel Size</strong>, Scale = 1. Leave Target Texture empty to render in Game rather than a RenderTexture.</li><li>Check <strong>Theme Style Sheet</strong> in Panel Settings; assign Unity's default runtime theme if it was not assigned automatically. Keep default font settings for this test.</li><li>Leave UI Document's <strong>Source Asset</strong> empty. This runtime example does not need UXML.</li></ol><p><code>UIDocument</code> connects the scene to UI Toolkit. <code>Panel Settings</code> controls output and scaling, not your LumaFlow application theme. <code>rootVisualElement</code> is the native container into which we mount the widget tree. A uGUI Canvas is not required.</p><p><strong>Checkpoint:</strong> App has an enabled UI Document with Panel Settings assigned. Game may still be empty.</p></section>
+<section id="minimal"><h2>3. Get a working app in one file</h2><p>Create <code>Assets/FirstApp/FirstScreen.cs</code> and paste the entire file below. Wait for compilation, add <strong>First Screen</strong> to App, enter Play Mode and open Game. The filename must match the MonoBehaviour class name.</p><div class="docs-code"><div><span>FirstScreen.cs · complete file</span><button class="copy-code" type="button" data-copy-source="code-FirstScreen">Copy</button></div><pre id="code-FirstScreen" tabindex="0"><code>#nullable enable
+using System.Collections;
+using LumaFlow;
+using UnityEngine;
+using UIDocument = UnityEngine.UIElements.UIDocument;
+using Framework = LumaFlow.LumaFlow;
 
-<span class="token-keyword">using</span> Framework = LumaFlow.LumaFlow;
+namespace LumaFlowDocs.Minimal {
+    [RequireComponent(typeof(UIDocument))]
+    [DisallowMultipleComponent]
+    public sealed class FirstScreen : MonoBehaviour {
+        private readonly State&lt;int&gt; _count = new(0);
+        private MountHandle? _mount;
+        private Coroutine? _startup;
 
-[RequireComponent(<span class="token-keyword">typeof</span>(UIDocument))]
-<span class="token-keyword">public sealed class</span> ProjectCounterScreen : MonoBehaviour {
-  <span class="token-keyword">private</span> MountHandle? _mount;
+        private void OnEnable() =&gt; _startup = StartCoroutine(MountWhenReady());
 
-  <span class="token-keyword">private void</span> OnEnable() {
-    <span class="token-keyword">var</span> root = GetComponent&lt;UIDocument&gt;().rootVisualElement;
-    _mount = Framework.Mount(BuildScreen(), root);
-  }
+        private IEnumerator MountWhenReady() {
+            yield return null;
+            var document = GetComponent&lt;UIDocument&gt;();
+            if (document.panelSettings == null) {
+                Debug.LogError("Assign Panel Settings on the UIDocument.", this);
+                _startup = null;
+                yield break;
+            }
+            while (document.rootVisualElement?.panel == null) yield return null;
+            _mount = Framework.Mount(BuildScreen(), document.rootVisualElement);
+            _startup = null;
+        }
 
-  <span class="token-keyword">private static</span> Widget BuildScreen() =&gt;
-    <span class="token-keyword">new</span> Text(<span class="token-string">"Projects"</span>);
-}</code></pre></div></section>
-          <section id="state"><h2>Make the changing value explicit.</h2><p>A widget is an immutable description, so the counter lives outside the description. <code>ReactiveBuilder&lt;T&gt;</code> is the branch that reads the value and therefore the branch that updates.</p><div class="docs-code"><div><span>ProjectCounterScreen.cs</span><button class="copy-code" type="button" data-copy-source="tutorial-state-code">Copy</button></div><pre id="tutorial-state-code"><code><span class="token-keyword">private readonly</span> State&lt;<span class="token-type">int</span>&gt; _count = <span class="token-keyword">new</span>(0);
+        private Widget BuildScreen() =&gt; new Scaffold(new Center(new Padding(
+            new Column(new Widget[] {
+                new Text("My first LumaFlow app"),
+                new ReactiveBuilder&lt;int&gt;(_count,
+                    value =&gt; new Text($"Projects: {value}")),
+                new Button("Add project", () =&gt; _count.Value++)
+            }, gap: 12f), EdgeInsets.All(24f))));
 
-<span class="token-keyword">private</span> Widget BuildScreen() =&gt; <span class="token-keyword">new</span> Column(
-  gap: <span class="token-number">12f</span>,
-  children: <span class="token-keyword">new</span> Widget[] {
-    <span class="token-keyword">new</span> Text(<span class="token-string">"Project overview"</span>),
-    <span class="token-keyword">new</span> ReactiveBuilder&lt;<span class="token-type">int</span>&gt;(
-      _count, value =&gt; <span class="token-keyword">new</span> Text($<span class="token-string">"{value} active projects"</span>)),
-    <span class="token-keyword">new</span> Button(<span class="token-string">"Add project"</span>, () =&gt; _count.Value++)
-  });</code></pre></div><p>Do not instantiate long-lived controllers or state inside a builder. Builders can run again; the component is the owner that survives those updates.</p></section>
-          <section id="cleanup"><h2>Dispose when the document stops being your active host.</h2><p>Disposal removes LumaFlow’s host and releases subscriptions. It does not clear native siblings that your application added to the document root.</p><div class="docs-code"><div><span>ProjectCounterScreen.cs</span><button class="copy-code" type="button" data-copy-source="tutorial-cleanup-code">Copy</button></div><pre id="tutorial-cleanup-code"><code><span class="token-keyword">private void</span> OnDisable() {
-  _mount?.Dispose();
-  _mount = <span class="token-keyword">null</span>;
-}</code></pre></div></section>
-          <section id="next"><h2>Take the same model into a real application.</h2><div class="docs-grid"><div><h3>Responsive composition</h3><p>Use <code>LayoutBuilder</code> to switch between compact and wide layouts from real constraints.</p></div><div><h3>Application flow</h3><p>Introduce a retained <code>Navigator</code> when the screen becomes a route.</p></div></div><a class="button button-primary" href="docs.html">Continue with the guides <span aria-hidden="true">→</span></a></section>
-        </article>
-      </section>
-    </main>
-    <footer class="site-footer"><div class="shell footer-grid"><a class="brand" href="index.html"><img src="assets/lumaflow.png" alt="" width="28" height="28" /><span>LumaFlow</span></a><div class="footer-links"><a href="docs.html">Guides</a><a href="tutorial.html">Tutorial</a><a href="reference.html">API reference</a></div><p>© <span data-year></span> LumaFlow. Unity is a trademark of Unity Technologies.</p></div></footer>
-    <script src="scripts/main.js"></script><script src="scripts/i18n.js"></script>
-  </body>
-</html>
+        private void OnDisable() {
+            if (_startup != null) StopCoroutine(_startup);
+            _startup = null;
+            _mount?.Dispose();
+            _mount = null;
+        }
+    }
+}</code></pre></div><p><a href="assets/examples/first-app/FirstScreen.cs" download>Download FirstScreen.cs</a></p><p><strong>Expected result:</strong> a heading, <code>Projects: 0</code> and Add project. Click three times: the label becomes <code>Projects: 3</code>. Styling is intentionally basic; a custom theme comes later.</p><p><code>MountWhenReady</code> is a startup coroutine. <code>yield return null</code> gives Unity one frame; the loop then waits for UIDocument to attach to a live panel. This prevents mounting too early on devices. It finishes after mounting: there is no permanent Update loop. Enable UI Document together with App.</p><p><code>Framework</code> is an alias for the class <code>LumaFlow.LumaFlow</code>. The <code>UIDocument</code> alias imports only that Unity type. Importing both namespaces with <code>using UnityEngine.UIElements;</code> and <code>using LumaFlow;</code> would make Button ambiguous.</p></section>
+<section id="mental-model"><h2>4. Follow one click before learning every framework term</h2><ol><li><code>new Button(..., () =&gt; _count.Value++)</code> supplies an action to run on a press. <code>() =&gt;</code> means “run this function later”, not during Build.</li><li><code>State&lt;int&gt;</code> stores an integer and notifies subscribers when it changes; it is more than a local variable.</li><li><code>ReactiveBuilder&lt;int&gt;</code> receives that State and a function that describes its current label. A change schedules an update to that branch.</li><li><code>Column</code> arranges children vertically, <code>gap</code> separates them, <code>Padding</code> adds inner space, <code>Center</code> centers the content and <code>Scaffold</code> provides the main screen region.</li></ol><p>A <code>Widget</code> is a description of the desired UI, not a GameObject. Build creates descriptions; LumaFlow reconciles them with its mounted tree and UI Toolkit renders them. Do not call Mount on every click or perform network requests/audio playback inside Build.</p><div class="docs-callout cool"><strong>Create state once, in an owner.</strong><p>_count is a component field, not a local variable in BuildScreen. Rebuilding does not reset it. State&lt;T&gt; has no Dispose method; ReactiveBuilder's subscriptions are removed when its branch unmounts. If you call Subscribe manually, dispose the returned subscription yourself.</p></div><p><code>MountHandle</code> controls an existing mounted tree. Dispose removes its UI and subscriptions. OnEnable starts the app; OnDisable cancels startup and disposes the mount. This is not disk persistence: restarting Play Mode may reset the number.</p><p><strong>A small C# glossary:</strong> <code>namespace</code> groups classes and avoids name conflicts; <code>readonly</code> prevents replacing a field reference after initialization; <code>static</code> means data belongs to the class rather than each screen. <code>#nullable enable</code> enables null checks: <code>?</code> allows null, <code>?.</code> calls a member only when the object exists, and <code>!</code> tells the compiler the object is known to exist at this point. The <code>!</code> operator is not a runtime check.</p></section>
+<section id="roles"><h2>5. When the app grows: give each class one job</h2><p>The single-file app already works. Splitting it helps people keep startup, data, styling and layout separate. <strong>Only AppBootstrap is a scene component.</strong> Do not try to attach all five classes to GameObjects.</p><div class="guide-table-wrap"><table class="guide-table"><caption>Application classes, not package requirements</caption><thead><tr><th>Class</th><th>Plain-language job</th><th>Owner / what to change here</th></tr></thead><tbody><tr><th>AppBootstrap</th><td>The scene's power switch: wait for the panel, compose the app, Mount, then Dispose.</td><td>Unity invokes OnEnable/OnDisable. Change startup and lifetime here, not button layout.</td></tr><tr><th>AppDependencies</th><td>Shared objects the screen needs. Here, just the counter and its add action.</td><td>Bootstrap creates it once per activation. Saving/network services can be added later; none are required now.</td></tr><tr><th>AppRoot</th><td>The top Widget that combines the theme and initial page.</td><td>Bootstrap creates and mounts it. Change shared wrappers and the starting page here.</td></tr><tr><th>AppTheme</th><td>Shared colors, text styles and control defaults.</td><td>Static data created once. Change visual defaults here, not business logic.</td></tr><tr><th>CounterPage</th><td>One screen's layout and the connection between its button and action.</td><td>AppRoot creates it. Add text, spacing, buttons and reactive branches here.</td></tr></tbody></table></div><pre class="guide-flow" aria-label="Startup flow">Unity → AppBootstrap → AppDependencies
+                    → Mount(AppRoot, UIDocument.rootVisualElement)
+                              → Theme → Scaffold → CounterPage</pre><p>AppRoot is a Widget, <em>not</em> UIDocument.rootVisualElement. AppTheme is LumaFlow configuration, <em>not</em> Panel Settings or Unity's Theme Style Sheet. AppDependencies is a plain C# object, <em>not</em> a required dependency-injection container. Names such as Controller, Presenter and AppShell are also architectural choices, not magic framework requirements.</p></section>
+<section id="files"><h2>6. Split the same example into files</h2><p>Exit Play Mode. <strong>Remove First Screen from App</strong> before adding the new bootstrap: otherwise two components will mount two apps into one document. You may keep its source file. Create <code>Assets/FirstApp/Structured</code>, add all five files below and wait for compilation. Their shared namespace <code>LumaFlowDocs.Structured</code> avoids conflicts with existing AppRoot/AppTheme classes.</p><pre class="guide-flow">Assets/FirstApp/Structured/
+  AppBootstrap.cs     ← the only MonoBehaviour
+  AppDependencies.cs  ← data and actions
+  AppRoot.cs          ← root composition
+  AppTheme.cs         ← styling
+  CounterPage.cs      ← screen layout</pre><h3>AppDependencies.cs — give data an owner</h3><p>The counter lives outside Build. AddProject changes it. Constructor injection gives the page the same counter instead of creating another one. For a tiny app you could pass State directly; the extra class illustrates a path for growth.</p><div class="docs-code"><div><span>AppDependencies.cs · complete file</span><button class="copy-code" type="button" data-copy-source="code-AppDependencies">Copy</button></div><pre id="code-AppDependencies" tabindex="0"><code>using LumaFlow;
+
+namespace LumaFlowDocs.Structured {
+    public sealed class AppDependencies {
+        public State&lt;int&gt; ProjectCount { get; } = new(0);
+
+        public void AddProject() =&gt; ProjectCount.Value++;
+    }
+}</code></pre></div><p><a href="assets/examples/first-app/AppDependencies.cs" download>Download AppDependencies.cs</a></p><h3>AppTheme.cs — one source of visual defaults</h3><p>ThemeData combines colors, typography, spacing, radii and button styles. OnPrimary means text on the primary action; Canvas is Scaffold's background. Creating a theme does not display it: AppRoot applies it using Theme. An explicit widget style may override theme values.</p><div class="docs-code"><div><span>AppTheme.cs · complete file</span><button class="copy-code" type="button" data-copy-source="code-AppTheme">Copy</button></div><pre id="code-AppTheme" tabindex="0"><code>using LumaFlow;
+using UnityEngine;
+
+namespace LumaFlowDocs.Structured {
+    public static class AppTheme {
+        private static readonly Color Ink = new Color32(44, 48, 62, 255);
+        private static readonly Color Paper = new Color32(245, 244, 240, 255);
+        private static readonly Color Accent = new Color32(98, 83, 150, 255);
+
+        public static ThemeData Data { get; } = new(
+            colors: new ColorScheme(
+                canvas: Paper, surface: Color.white, surfaceVariant: Paper,
+                primary: Accent, primaryContainer: Paper, onPrimary: Color.white,
+                onSurface: Ink, onSurfaceVariant: Color.gray, outline: Color.gray),
+            typography: new TypographyTheme(
+                title: new TextStyle(Ink, 26f, FontStyle.Bold),
+                headline: new TextStyle(Ink, 20f, FontStyle.Bold),
+                body: new TextStyle(Ink, 16f),
+                label: new TextStyle(Color.white, 16f)),
+            spacing: new SpacingTheme(4f, 8f, 12f, 20f, 32f),
+            radius: new RadiusTheme(
+                BorderRadius.All(8f), BorderRadius.All(12f), BorderRadius.All(20f)),
+            buttonTheme: new ButtonTheme(
+                primary: new ButtonStyle(background: Accent, foreground: Color.white,
+                    padding: EdgeInsets.Symmetric(horizontal: 20f, vertical: 12f),
+                    shape: BorderRadius.All(12f), minimumSize: new Vector2(120f, 48f)),
+                secondary: new ButtonStyle(background: Paper, foreground: Ink,
+                    padding: EdgeInsets.All(12f), shape: BorderRadius.All(12f))));
+    }
+}</code></pre></div><p><a href="assets/examples/first-app/AppTheme.cs" download>Download AppTheme.cs</a></p><h3>CounterPage.cs — describe the screen</h3><p>StatelessWidget means the Widget itself does not own mutable local UI state, not that the screen cannot change. ReactiveBuilder watches the supplied State. BuildContext provides the current branch's settings; Theme! is valid here because AppRoot always wraps this page in Theme.</p><div class="docs-code"><div><span>CounterPage.cs · complete file</span><button class="copy-code" type="button" data-copy-source="code-CounterPage">Copy</button></div><pre id="code-CounterPage" tabindex="0"><code>using LumaFlow;
+
+namespace LumaFlowDocs.Structured {
+    public sealed class CounterPage : StatelessWidget {
+        private readonly AppDependencies _app;
+
+        public CounterPage(AppDependencies app) =&gt; _app = app;
+
+        public override Widget Build(BuildContext context) =&gt; new Center(new Padding(
+            new Column(new Widget[] {
+                new Text("Project counter", context.Theme!.Typography.Title),
+                new ReactiveBuilder&lt;int&gt;(_app.ProjectCount,
+                    value =&gt; new Text($"Projects: {value}")),
+                new Button("Add project", _app.AddProject)
+            }, gap: 16f), EdgeInsets.All(24f)));
+    }
+}</code></pre></div><p><a href="assets/examples/first-app/CounterPage.cs" download>Download CounterPage.cs</a></p><h3>AppRoot.cs — combine the theme and page</h3><p>Theme supplies settings to descendants, Scaffold provides the screen region and CounterPage describes its contents. Navigation or OverlayHost can be added here later; the counter does not need them.</p><div class="docs-code"><div><span>AppRoot.cs · complete file</span><button class="copy-code" type="button" data-copy-source="code-AppRoot">Copy</button></div><pre id="code-AppRoot" tabindex="0"><code>using LumaFlow;
+
+namespace LumaFlowDocs.Structured {
+    public sealed class AppRoot : StatelessWidget {
+        private readonly AppDependencies _app;
+
+        public AppRoot(AppDependencies app) =&gt; _app = app;
+
+        public override Widget Build(BuildContext context) =&gt; new Theme(
+            AppTheme.Data,
+            new Scaffold(new CounterPage(_app)));
+    }
+}</code></pre></div><p><a href="assets/examples/first-app/AppRoot.cs" download>Download AppRoot.cs</a></p><h3>AppBootstrap.cs — connect the app to the scene</h3><p>Bootstrap owns the dependencies and MountHandle. It does not find native labels/buttons; the widget tree handles layout. Disabling first removes the UI, then releases the dependencies reference. This example contains only State, so AppDependencies needs no Dispose. If you add owned IDisposable services, dispose them <em>after</em> the mount.</p><div class="docs-code"><div><span>AppBootstrap.cs · complete file</span><button class="copy-code" type="button" data-copy-source="code-AppBootstrap">Copy</button></div><pre id="code-AppBootstrap" tabindex="0"><code>#nullable enable
+using System.Collections;
+using LumaFlow;
+using UnityEngine;
+using UIDocument = UnityEngine.UIElements.UIDocument;
+using Framework = LumaFlow.LumaFlow;
+
+namespace LumaFlowDocs.Structured {
+    [RequireComponent(typeof(UIDocument))]
+    [DisallowMultipleComponent]
+    public sealed class AppBootstrap : MonoBehaviour {
+        private AppDependencies? _app;
+        private MountHandle? _mount;
+        private Coroutine? _startup;
+
+        private void OnEnable() {
+            _app = new AppDependencies();
+            _startup = StartCoroutine(MountWhenReady());
+        }
+
+        private IEnumerator MountWhenReady() {
+            yield return null;
+            var document = GetComponent&lt;UIDocument&gt;();
+            if (document.panelSettings == null) {
+                Debug.LogError("Assign Panel Settings on the UIDocument.", this);
+                _startup = null;
+                yield break;
+            }
+            while (document.rootVisualElement?.panel == null) yield return null;
+            _mount = Framework.Mount(new AppRoot(_app!), document.rootVisualElement);
+            _startup = null;
+        }
+
+        private void OnDisable() {
+            if (_startup != null) StopCoroutine(_startup);
+            _startup = null;
+            _mount?.Dispose();
+            _mount = null;
+            _app = null;
+        }
+    }
+}</code></pre></div><p><a href="assets/examples/first-app/AppBootstrap.cs" download>Download AppBootstrap.cs</a></p><p>Add <strong>App Bootstrap</strong> to App alongside UI Document. Enter Play: a light background, heading and purple button appear, and the counter still works. Disable and enable App: only one screen should appear, with the count reset to zero because this Bootstrap creates new dependencies on each activation.</p></section>
+<section id="practice"><h2>7. Check that you know where to make a change</h2><ol><li>Change CounterPage's gap from 16f to 24f. The space between elements increases.</li><li>Change AppTheme's Accent. The main button color changes without editing CounterPage.</li><li>Replace <code>ProjectCount.Value++</code> with <code>ProjectCount.Value += 2</code> in AppDependencies. A click now adds two.</li><li>Add Reset() to AppDependencies and a second button to CounterPage. Do not remount or create a new State in Build.</li></ol><p>While learning, save C# outside Play Mode, wait for compilation, then enter Play again. Rebuild does not compile C# and is not hot reload. Viewing generated UXML in Game without Play is a separate editor-preview workflow: a visual snapshot does not replace the app's working callbacks. <a href="workflow.html">Read about Rebuild, Restart and compilation</a>.</p></section>
+<section id="troubleshooting"><h2>If something goes wrong</h2><dl class="guide-faq"><dt>Game is empty</dt><dd>Check Console first. App needs an enabled UI Document and exactly one Bootstrap/FirstScreen, with Panel Settings assigned and Target Texture empty. This runtime lesson requires Play Mode. Bootstrap waits for a live panel; a disabled document cannot supply one.</dd><dt>The script cannot be attached as a component</dt><dd>The filename must match its MonoBehaviour class name. Fix all compilation errors. AppRoot, AppTheme, AppDependencies and CounterPage are not scene components.</dd><dt>Button is an ambiguous reference</dt><dd>Use the UIDocument alias shown in the complete files, or qualify LumaFlow.Button. Both UI namespaces contain a Button.</dd><dt>The counter does not update or stays at zero</dt><dd>Use ReactiveBuilder to read it and create State outside Build. The button must mutate the same State instance the builder receives.</dd><dt>Two identical screens appear</dt><dd>Remove First Screen when switching to App Bootstrap. Do not mount the application simultaneously from two components.</dd><dt>Disabling App loses its data</dt><dd>Expected in the structured example: OnEnable creates new dependencies. To retain data across scenes, give it a separate owner; to retain it across launches, save it to disk. MountHandle is not a persistence system.</dd><dt>I do not want five files yet</dt><dd>Keep FirstScreen. Extract themes, pages and dependencies when they become useful. The lesson explains responsibilities rather than prescribing boilerplate for every window.</dd></dl></section>
+<section id="next"><h2>Where to go next</h2><p>Remember: <strong>Bootstrap starts, Dependencies supplies data, Root composes, Theme styles, Page describes the screen.</strong></p><p><a href="architecture.html">Widget, Element, State and Key</a> → <a href="reference.html">layout rules</a> → <a href="controls.html">controls and forms</a> → <a href="overlays.html">navigation and overlays</a>. Use the API reference once you know which task you are solving.</p><a class="button button-primary" href="architecture.html">Next: how the tree works →</a></section></article></section></main>
+<footer class="site-footer"><div class="shell footer-grid"><a class="brand" href="index.html"><img src="assets/lumaflow.png" alt="" width="28" height="28"><span>LumaFlow</span></a><div class="footer-links"><a href="docs.html">Documentation</a><a href="tutorial-ru.html" lang="ru">Русская версия</a></div><p>© <span data-year></span> LumaFlow.</p></div></footer><script src="scripts/main.js"></script>
+</body></html>
